@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
+import { useAuth } from '../contexts/AuthContext';
 import { Input } from '../components/Input';
 import { Button } from '../components/Button';
 import { MonitorPlay } from 'lucide-react';
 
 const EditorSignupPage: React.FC = () => {
+  const { refreshUser } = useAuth();
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -43,6 +45,7 @@ const EditorSignupPage: React.FC = () => {
         if (profileError) console.warn('Profile creation warning:', profileError.message);
       }
 
+      await refreshUser();
       navigate('/dashboard-editor');
 
     } catch (err: any) {

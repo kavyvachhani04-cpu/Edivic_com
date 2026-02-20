@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
+import { useAuth } from '../contexts/AuthContext';
 import { Input } from '../components/Input';
 import { Button } from '../components/Button';
 import { MonitorPlay } from 'lucide-react';
 
 const EditorLoginPage: React.FC = () => {
+  const { refreshUser } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -34,6 +36,7 @@ const EditorLoginPage: React.FC = () => {
         return;
       }
 
+      await refreshUser();
       navigate('/dashboard-editor');
 
     } catch (err: any) {
