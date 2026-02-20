@@ -18,12 +18,22 @@ const EditorLoginPage: React.FC = () => {
     setLoading(true);
 
     try {
-      const { error: authError } = await supabase.auth.signInWithPassword({
+      const { data, error: authError } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
 
       if (authError) throw authError;
+
+      // Check role to prevent cross-role login
+      const role = data.user?.user_metadata?.role;
+      if (role === 'client') {
+        await supabase.auth.signOut();
+        setError('This email is registered as a Client. Please sign in on the Client Login page.');
+        setLoading(false);
+        return;
+      }
+
       navigate('/dashboard-editor');
 
     } catch (err: any) {

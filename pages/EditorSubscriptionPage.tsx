@@ -60,9 +60,6 @@ const EditorSubscriptionPage: React.FC = () => {
     if (!user) return;
     setLoadingPlan(planId);
 
-    // Simulate Payment Delay
-    await new Promise(resolve => setTimeout(resolve, 1500));
-
     try {
       const expiryDate = new Date();
       expiryDate.setDate(expiryDate.getDate() + 30); // 30 days expiry

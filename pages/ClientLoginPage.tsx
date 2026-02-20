@@ -25,9 +25,15 @@ const ClientLoginPage: React.FC = () => {
 
       if (authError) throw authError;
 
-      // Check role indirectly by user metadata if available, or just route to dashboard
-      // Ideally we check profile, but for speed we trust the user knows which login they used.
-      // The AuthContext will refresh and update user role.
+      // Check role to prevent cross-role login
+      const role = data.user?.user_metadata?.role;
+      if (role === 'editor') {
+        await supabase.auth.signOut();
+        setError('This email is registered as an Editor. Please sign in on the Editor Login page.');
+        setLoading(false);
+        return;
+      }
+
       navigate('/dashboard-client');
 
     } catch (err: any) {
