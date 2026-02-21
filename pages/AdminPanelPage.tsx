@@ -2,18 +2,26 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
-import { Trash2, Shield, LogOut, Search, AlertCircle, Users, MessageSquare, Mail } from 'lucide-react';
+import { Trash2, Shield, LogOut, Search, AlertCircle, Users, MessageSquare, Mail, Settings, Key, Activity } from 'lucide-react';
+import { Button } from '../components/Button';
+import { Input } from '../components/Input';
 
 const AdminPanelPage: React.FC = () => {
   const { user, loading: authLoading, isAdmin } = useAuth();
   
   // State
-  const [activeTab, setActiveTab] = useState<'users' | 'inquiries'>('users');
+  const [activeTab, setActiveTab] = useState<'users' | 'inquiries' | 'settings'>('users');
   const [users, setUsers] = useState<any[]>([]);
   const [inquiries, setInquiries] = useState<any[]>([]);
   const [loadingData, setLoadingData] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [fetchError, setFetchError] = useState('');
+  
+  // Settings State
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [passwordMessage, setPasswordMessage] = useState('');
+  const [updatingPassword, setUpdatingPassword] = useState(false);
   
   const navigate = useNavigate();
 
@@ -30,6 +38,8 @@ const AdminPanelPage: React.FC = () => {
   }, [user, authLoading, isAdmin, navigate, activeTab]);
 
   const fetchData = async () => {
+    if (activeTab === 'settings') return;
+    
     setLoadingData(true);
     setFetchError('');
     try {
@@ -46,7 +56,7 @@ const AdminPanelPage: React.FC = () => {
           } else {
             setUsers(data || []);
           }
-      } else {
+      } else if (activeTab === 'inquiries') {
           // Fetch Inquiries
           const { data, error } = await supabase
             .from('inquiries')
@@ -100,6 +110,33 @@ const AdminPanelPage: React.FC = () => {
     }
   }
 
+  const handlePasswordUpdate = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (newPassword !== confirmPassword) {
+        setPasswordMessage('Passwords do not match');
+        return;
+    }
+    if (newPassword.length < 6) {
+        setPasswordMessage('Password must be at least 6 characters');
+        return;
+    }
+
+    setUpdatingPassword(true);
+    setPasswordMessage('');
+
+    try {
+        const { error } = await supabase.auth.updateUser({ password: newPassword });
+        if (error) throw error;
+        setPasswordMessage('Password updated successfully');
+        setNewPassword('');
+        setConfirmPassword('');
+    } catch (error: any) {
+        setPasswordMessage('Error: ' + error.message);
+    } finally {
+        setUpdatingPassword(false);
+    }
+  };
+
   const filteredUsers = users.filter(u => 
     (u.name || '').toLowerCase().includes(searchTerm.toLowerCase()) || 
     (u.email || '').toLowerCase().includes(searchTerm.toLowerCase())
@@ -115,7 +152,7 @@ const AdminPanelPage: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-slate-50">
-      <nav className="bg-slate-900 text-white shadow-lg">
+      <nav className="bg-slate-900 text-white shadow-lg sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between h-16 items-center">
             <div className="flex items-center space-x-3">
@@ -145,16 +182,18 @@ const AdminPanelPage: React.FC = () => {
                     <h1 className="text-2xl font-bold text-slate-900">Dashboard</h1>
                     <p className="text-slate-500 mt-1">Overview of system activity.</p>
                 </div>
-                <div className="relative">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-                    <input
-                    type="text"
-                    placeholder={`Search ${activeTab}...`}
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="pl-10 pr-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 w-full sm:w-64"
-                    />
-                </div>
+                {activeTab !== 'settings' && (
+                    <div className="relative">
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                        <input
+                        type="text"
+                        placeholder={`Search ${activeTab}...`}
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        className="pl-10 pr-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 w-full sm:w-64"
+                        />
+                    </div>
+                )}
             </div>
 
             <div className="flex space-x-1 bg-slate-200 p-1 rounded-lg w-fit">
@@ -175,6 +214,15 @@ const AdminPanelPage: React.FC = () => {
                 >
                     <MessageSquare className="h-4 w-4" />
                     <span>Inquiries</span>
+                </button>
+                <button
+                    onClick={() => setActiveTab('settings')}
+                    className={`flex items-center space-x-2 px-4 py-2 rounded-md text-sm font-medium transition-all ${
+                        activeTab === 'settings' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-600 hover:text-slate-900'
+                    }`}
+                >
+                    <Settings className="h-4 w-4" />
+                    <span>Settings</span>
                 </button>
             </div>
         </div>
@@ -241,7 +289,7 @@ const AdminPanelPage: React.FC = () => {
                     )}
                 </tbody>
                 </table>
-            ) : (
+            ) : activeTab === 'inquiries' ? (
                 // INQUIRIES TABLE
                 <table className="min-w-full divide-y divide-slate-200">
                 <thead className="bg-slate-50">
@@ -287,12 +335,50 @@ const AdminPanelPage: React.FC = () => {
                     )}
                 </tbody>
                 </table>
+            ) : (
+                // SETTINGS TAB
+                <div className="p-8 max-w-2xl">
+                    <h2 className="text-xl font-bold text-slate-900 mb-6 flex items-center gap-2">
+                        <Key className="h-5 w-5 text-indigo-500" />
+                        Change Admin Password
+                    </h2>
+                    
+                    <form onSubmit={handlePasswordUpdate} className="space-y-6">
+                        {passwordMessage && (
+                            <div className={`p-4 rounded-lg text-sm ${passwordMessage.includes('Error') ? 'bg-red-50 text-red-700' : 'bg-green-50 text-green-700'}`}>
+                                {passwordMessage}
+                            </div>
+                        )}
+                        
+                        <Input
+                            label="New Password"
+                            type="password"
+                            value={newPassword}
+                            onChange={(e) => setNewPassword(e.target.value)}
+                            placeholder="Enter new password"
+                        />
+                        
+                        <Input
+                            label="Confirm New Password"
+                            type="password"
+                            value={confirmPassword}
+                            onChange={(e) => setConfirmPassword(e.target.value)}
+                            placeholder="Confirm new password"
+                        />
+                        
+                        <Button type="submit" disabled={updatingPassword}>
+                            {updatingPassword ? 'Updating...' : 'Update Password'}
+                        </Button>
+                    </form>
+                </div>
             )}
           </div>
           
-          <div className="bg-slate-50 px-6 py-3 border-t border-slate-200 text-sm text-slate-500">
-             Showing {activeTab === 'users' ? filteredUsers.length : filteredInquiries.length} results
-          </div>
+          {activeTab !== 'settings' && (
+            <div className="bg-slate-50 px-6 py-3 border-t border-slate-200 text-sm text-slate-500">
+                Showing {activeTab === 'users' ? filteredUsers.length : filteredInquiries.length} results
+            </div>
+          )}
         </div>
       </main>
     </div>

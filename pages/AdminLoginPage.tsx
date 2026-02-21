@@ -51,6 +51,7 @@ const AdminLoginPage: React.FC = () => {
           <p className="mt-2 text-sm text-slate-400">
             Restricted area. Authorized personnel only.
           </p>
+          <p className="text-xs text-slate-500 mt-1">Default: 123456</p>
         </div>
         
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
