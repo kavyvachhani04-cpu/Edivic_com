@@ -16,8 +16,12 @@ const ClientLoginPage: React.FC = () => {
 
   // Auto-redirect if user is already logged in
   React.useEffect(() => {
-    if (user && user.role === 'client') {
-      navigate('/dashboard-client');
+    if (user) {
+      if (user.role === 'client') {
+        navigate('/dashboard-client');
+      } else if (user.role === 'admin') {
+        navigate('/admin/dashboard');
+      }
     }
   }, [user, navigate]);
 
@@ -42,6 +46,18 @@ const ClientLoginPage: React.FC = () => {
 
       // Check role to prevent cross-role login
       const role = data.user?.user_metadata?.role;
+      const email = data.user?.email;
+
+      // Allow admin to login from here
+      if (email === 'admin@gmail.com') {
+         if (data.session) {
+            const timeout = new Promise((resolve) => setTimeout(resolve, 3000));
+            await Promise.race([refreshUser(data.session), timeout]);
+            navigate('/admin/dashboard');
+            return;
+         }
+      }
+
       if (role === 'editor') {
         await supabase.auth.signOut();
         setError('This email is registered as an Editor. Please sign in on the Editor Login page.');
