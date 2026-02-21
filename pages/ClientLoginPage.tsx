@@ -4,7 +4,7 @@ import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
 import { Input } from '../components/Input';
 import { Button } from '../components/Button';
-import { User } from 'lucide-react';
+import { User as UserIcon } from 'lucide-react';
 
 const ClientLoginPage: React.FC = () => {
   const { user, refreshUser } = useAuth();
@@ -46,10 +46,10 @@ const ClientLoginPage: React.FC = () => {
 
       // Check role to prevent cross-role login
       const role = data.user?.user_metadata?.role;
-      const email = data.user?.email;
+      const userEmail = data.user?.email;
 
       // Allow admin to login from here
-      if (email === 'admin@gmail.com') {
+      if (userEmail === 'admin@gmail.com') {
          if (data.session) {
             const timeout = new Promise((resolve) => setTimeout(resolve, 3000));
             await Promise.race([refreshUser(data.session), timeout]);
@@ -94,7 +94,7 @@ const ClientLoginPage: React.FC = () => {
         
         <div className="text-center relative z-10">
           <div className="mx-auto h-12 w-12 bg-slate-800 rounded-xl flex items-center justify-center mb-4 border border-slate-700">
-             <User className="h-6 w-6 text-primary-400" />
+             <UserIcon className="h-6 w-6 text-primary-400" />
           </div>
           <h2 className="text-3xl font-bold text-white">Client Login</h2>
           <p className="mt-2 text-sm text-slate-400">

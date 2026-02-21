@@ -88,7 +88,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (!currentSession) {
         try {
             const result = await getSessionWithTimeout() as any;
-            currentSession = result.data.session;
+            
+            // Handle Refresh Token Error specifically
+            if (result.error) {
+                if (result.error.message?.includes('Refresh Token') || result.error.message?.includes('refresh_token_not_found')) {
+                    console.warn('Refresh token invalid, clearing session.');
+                    await supabase.auth.signOut();
+                    setUser(null);
+                    setLoading(false);
+                    return;
+                }
+                // For other errors, just log and continue as guest
+                console.warn('Session fetch error:', result.error.message);
+            }
+            
+            currentSession = result.data?.session;
         } catch (e) {
             console.warn('Session fetch timed out or failed, defaulting to guest.');
             currentSession = null;
@@ -112,7 +126,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   useEffect(() => {
     refreshUser(); // Restore initial check
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (event === 'SIGNED_OUT' || event === 'USER_DELETED') {
+        // Clear user state immediately on sign out
+        setUser(null);
+        setLoading(false);
+        return;
+      }
+
       if (session?.user) {
         const mappedUser = await mapSupabaseUser(session.user);
         setUser(mappedUser);
