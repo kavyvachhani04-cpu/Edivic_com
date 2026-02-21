@@ -108,6 +108,74 @@ const LandingPage: React.FC = () => {
         </div>
       </section>
 
+      {/* How EDIVIC Works Section */}
+      <section className="py-24 bg-white relative">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-16">
+            <h2 className="text-3xl md:text-4xl font-bold text-gold mb-4 font-display">How EDIVIC Works</h2>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {[
+              { 
+                step: "1️⃣", 
+                title: "Post Your Project", 
+                desc: "Tell us what video you want to edit and your budget." 
+              },
+              { 
+                step: "2️⃣", 
+                title: "Editor Starts Editing", 
+                desc: "Professional editors work on your video with high quality." 
+              },
+              { 
+                step: "3️⃣", 
+                title: "Pay Securely & Download", 
+                desc: "Pay after approval and download your final edited video." 
+              }
+            ].map((item, i) => (
+              <div key={i} className="bg-black p-10 rounded-2xl border border-gold/20 text-center hover:shadow-[0_0_30px_rgba(212,175,55,0.15)] transition-all duration-300">
+                <div className="text-4xl mb-6">{item.step}</div>
+                <h3 className="text-xl font-bold text-white mb-4">{item.title}</h3>
+                <p className="text-slate-400 leading-relaxed">
+                  {item.desc}
+                </p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Testimonials Section */}
+      <section className="py-24 bg-[#022c22] relative"> {/* Dark Green background from image */}
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-16">
+            <h2 className="text-3xl md:text-4xl font-bold text-gold mb-4 font-display">What Our Clients Say</h2>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {[
+              { 
+                quote: "EDIVIC helped me find amazing editors for my YouTube channel.", 
+                author: "- YouTube Creator" 
+              },
+              { 
+                quote: "Fast delivery and professional quality. Highly recommended!", 
+                author: "- Business Owner" 
+              },
+              { 
+                quote: "Great platform for editors to earn money from home.", 
+                author: "- Professional Editor" 
+              }
+            ].map((testimonial, i) => (
+              <div key={i} className="bg-black/40 p-8 rounded-xl border border-gold/10 text-center backdrop-blur-sm">
+                <p className="text-white text-lg italic mb-6">"{testimonial.quote}"</p>
+                <p className="text-gold font-bold">{testimonial.author}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* Features Section */}
       <section className="py-24 bg-surface relative overflow-hidden border-t border-white/5">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
