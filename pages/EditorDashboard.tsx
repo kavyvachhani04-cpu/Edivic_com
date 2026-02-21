@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
 import { EditorLayout } from '../components/EditorLayout';
+import { LoadingScreen } from '../components/LoadingScreen';
 import { Briefcase, CheckCircle, Search, Clock, ArrowUpRight } from 'lucide-react';
 
 const EditorDashboard: React.FC = () => {
@@ -62,7 +63,7 @@ const EditorDashboard: React.FC = () => {
     }
   };
 
-  if (loading || !user) return <div className="text-center mt-20 text-white">Loading...</div>;
+  if (loading || !user) return <LoadingScreen />;
 
   return (
     <EditorLayout title={`Welcome back, ${user.name.split(' ')[0]}!`} subtitle="Here is your editing career overview.">

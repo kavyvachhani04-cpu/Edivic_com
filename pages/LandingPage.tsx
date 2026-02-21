@@ -5,7 +5,7 @@ import { MonitorPlay, Users, CheckCircle, ArrowRight, Zap, Briefcase, Trophy, Gl
 
 const LandingPage: React.FC = () => {
   return (
-    <div className="bg-[#0f172a] overflow-hidden">
+    <div className="bg-background overflow-hidden">
       {/* Hero Section */}
       <section className="relative pt-24 pb-32 lg:pt-40 lg:pb-56">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
@@ -16,19 +16,19 @@ const LandingPage: React.FC = () => {
           
           <h1 className="text-5xl sm:text-6xl lg:text-7xl font-extrabold text-white tracking-tight mb-8">
             EDIVIC – The Future of <br className="hidden sm:block" />
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary-400 via-cyan-400 to-blue-500 neon-text">
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary-400 via-sky-400 to-blue-500 neon-text">
               Video Editing Marketplace
             </span>
           </h1>
           
           <p className="max-w-3xl mx-auto text-lg sm:text-xl text-slate-400 mb-12 leading-relaxed">
             Connect with professional video editors or find clients instantly. 
-            Manage projects, collaborate, and scale your video production with EDIVIC.
+            Manage projects, collaborate, and get cinematic videos fast.
           </p>
           
           <div className="flex flex-col sm:flex-row justify-center gap-6">
             <Link to="/signup-client" className="group">
-              <Button size="lg" className="w-full sm:w-auto text-lg px-8 py-4 shadow-[0_0_20px_rgba(6,182,212,0.3)]">
+              <Button size="lg" className="w-full sm:w-auto text-lg px-8 py-4 shadow-[0_0_20px_rgba(14,165,233,0.3)]">
                 Get Started as Client
                 <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
               </Button>
@@ -50,7 +50,7 @@ const LandingPage: React.FC = () => {
       </section>
 
       {/* Features Section */}
-      <section className="py-24 bg-slate-900 relative">
+      <section className="py-24 bg-surface relative">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-3xl font-bold text-white mb-4">Why Choose EDIVIC?</h2>
@@ -119,7 +119,7 @@ const LandingPage: React.FC = () => {
 
       {/* CTA Section */}
       <section className="py-24 relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-b from-slate-900 to-primary-900/20"></div>
+        <div className="absolute inset-0 bg-gradient-to-b from-surface to-primary-900/20"></div>
         <div className="max-w-4xl mx-auto px-4 relative z-10 text-center">
           <h2 className="text-4xl font-bold text-white mb-6">Ready to transform your content?</h2>
           <p className="text-xl text-slate-400 mb-10">

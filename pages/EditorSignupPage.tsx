@@ -51,7 +51,7 @@ const EditorSignupPage: React.FC = () => {
     } catch (err: any) {
       console.error('Signup error:', err);
       if (err.message?.includes('rate limit') || err.message?.includes('security purposes') || err.status === 429) {
-        setError('Too many attempts. Please wait a minute before trying again.');
+        setError('Server rate limit exceeded. Please wait 60 seconds or try a different email.');
       } else {
         setError(err.message || 'Signup failed');
       }

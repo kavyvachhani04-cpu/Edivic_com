@@ -34,12 +34,12 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#0f172a] text-slate-100">
-      <header className="sticky top-0 z-50 glass border-b border-white/10">
+    <div className="min-h-screen flex flex-col bg-background text-slate-100">
+      <header className="sticky top-0 z-50 glass border-b border-white/5">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between h-20 items-center">
             <Link to="/" className="flex items-center space-x-3 group">
-              <div className="bg-gradient-to-br from-primary-500 to-blue-600 p-2 rounded-lg group-hover:shadow-[0_0_15px_rgba(6,182,212,0.6)] transition-all">
+              <div className="bg-gradient-to-br from-primary-500 to-blue-600 p-2 rounded-lg group-hover:shadow-[0_0_15px_rgba(14,165,233,0.6)] transition-all">
                 <Rocket className="h-6 w-6 text-white" />
               </div>
               <span className="text-2xl font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-white to-slate-400">
@@ -146,7 +146,7 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
       </main>
 
       {!isAuthPage && (
-        <footer className="bg-slate-900 border-t border-white/10 py-12 relative overflow-hidden">
+        <footer className="bg-surface border-t border-white/5 py-12 relative overflow-hidden">
             {/* Glow effect */}
             <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-1 bg-gradient-to-r from-transparent via-primary-500 to-transparent opacity-50"></div>
             

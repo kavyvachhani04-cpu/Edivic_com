@@ -40,18 +40,18 @@ export const ClientLayout: React.FC<ClientLayoutProps> = ({ children, title, sub
   ];
 
   return (
-    <div className="flex min-h-screen bg-slate-900 text-slate-100 font-sans">
+    <div className="flex min-h-screen bg-background text-slate-100 font-sans">
       {/* Mobile Sidebar Overlay */}
       {isSidebarOpen && (
         <div 
-          className="fixed inset-0 bg-slate-900/80 z-40 lg:hidden backdrop-blur-sm"
+          className="fixed inset-0 bg-background/80 z-40 lg:hidden backdrop-blur-sm"
           onClick={() => setIsSidebarOpen(false)}
         />
       )}
 
       {/* Sidebar */}
       <aside className={`
-        fixed lg:static inset-y-0 left-0 z-50 w-64 bg-slate-900 border-r border-white/10 transform transition-transform duration-200 ease-in-out flex flex-col
+        fixed lg:static inset-y-0 left-0 z-50 w-64 bg-surface border-r border-white/5 transform transition-transform duration-200 ease-in-out flex flex-col
         ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
       `}>
         <div className="h-20 flex items-center px-6 border-b border-white/5">
@@ -113,7 +113,7 @@ export const ClientLayout: React.FC<ClientLayoutProps> = ({ children, title, sub
       {/* Main Content Area */}
       <div className="flex-1 flex flex-col min-w-0">
         {/* Top Mobile Header */}
-        <header className="lg:hidden h-16 bg-slate-900 border-b border-white/10 flex items-center justify-between px-4 sticky top-0 z-30 glass">
+        <header className="lg:hidden h-16 bg-surface border-b border-white/5 flex items-center justify-between px-4 sticky top-0 z-30 glass">
           <button onClick={() => setIsSidebarOpen(true)} className="text-slate-400 hover:text-white">
             <Menu className="h-6 w-6" />
           </button>

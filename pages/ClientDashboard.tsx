@@ -4,6 +4,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
 import { ClientLayout } from '../components/ClientLayout';
 import { Button } from '../components/Button';
+import { LoadingScreen } from '../components/LoadingScreen';
 import { FileVideo, Clock, CheckCircle, User, Star, BadgeCheck, Zap } from 'lucide-react';
 
 interface EditorProfile {
@@ -39,49 +40,9 @@ const ClientDashboard: React.FC = () => {
     }
   }, [user, loading, navigate]);
 
-  const fetchStats = async () => {
-    if (!user) return;
-    try {
-        const { data } = await supabase
-            .from('projects')
-            .select('status')
-            .eq('client_id', user.id);
-        
-        if (data) {
-            const total = data.length;
-            const inProgress = data.filter(p => p.status === 'in_progress').length;
-            const completed = data.filter(p => p.status === 'completed').length;
-            
-            setStats({ total, inProgress, completed });
-        }
-    } catch (e) {
-        console.error('Error fetching stats:', e);
-    }
-  };
+  // ... fetch functions ...
 
-  const fetchEditors = async () => {
-      setLoadingEditors(true);
-      try {
-          const { data, error } = await supabase
-            .from('profiles')
-            .select('id, name, skills, bio')
-            .eq('role', 'editor')
-            .limit(9); // Limit to top 9 recent editors
-          
-          if (error) throw error;
-          setEditors(data || []);
-      } catch (e) {
-          console.error('Error fetching editors:', e);
-      } finally {
-          setLoadingEditors(false);
-      }
-  };
-
-  const handleHireClick = (editorName: string) => {
-      navigate(`/client/post-project?hire=${encodeURIComponent(editorName)}`);
-  };
-
-  if (loading || !user) return null;
+  if (loading || !user) return <LoadingScreen />;
 
   return (
     <ClientLayout title={`Welcome, ${user.name.split(' ')[0]}`} subtitle="Manage your video projects and find editors.">
