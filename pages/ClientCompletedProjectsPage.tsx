@@ -3,13 +3,18 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
 import { ClientLayout } from '../components/ClientLayout';
-import { CheckCircle, ExternalLink, Download } from 'lucide-react';
+import { Button } from '../components/Button';
+import { RatingModal } from '../components/RatingModal';
+import { CheckCircle, ExternalLink, Star } from 'lucide-react';
 import { Project } from '../types';
 
 const ClientCompletedProjectsPage: React.FC = () => {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
   const [projects, setProjects] = useState<Project[]>([]);
+  const [selectedProject, setSelectedProject] = useState<Project | null>(null);
+  const [isRatingModalOpen, setIsRatingModalOpen] = useState(false);
+  const [isSubmittingRating, setIsSubmittingRating] = useState(false);
 
   useEffect(() => {
     if (!loading) {
@@ -32,6 +37,36 @@ const ClientCompletedProjectsPage: React.FC = () => {
     setProjects(data || []);
   };
 
+  const handleRateClick = (project: Project) => {
+    setSelectedProject(project);
+    setIsRatingModalOpen(true);
+  };
+
+  const handleRatingSubmit = async (rating: number, feedback: string) => {
+    if (!selectedProject) return;
+    setIsSubmittingRating(true);
+    try {
+      const { error } = await supabase
+        .from('projects')
+        .update({ rating, feedback })
+        .eq('id', selectedProject.id);
+
+      if (error) throw error;
+      
+      // Update local state
+      setProjects(prev => prev.map(p => 
+        p.id === selectedProject.id ? { ...p, rating, feedback } : p
+      ));
+      
+      setIsRatingModalOpen(false);
+      setSelectedProject(null);
+    } catch (error) {
+      console.error('Error submitting rating:', error);
+    } finally {
+      setIsSubmittingRating(false);
+    }
+  };
+
   return (
     <ClientLayout title="Completed Projects" subtitle="Archive of your finished videos.">
         <div className="grid gap-6">
@@ -44,17 +79,38 @@ const ClientCompletedProjectsPage: React.FC = () => {
                 projects.map(project => (
                     <div key={project.id} className="glass p-6 rounded-xl border border-green-500/10 hover:border-green-500/30 transition-all">
                         <div className="flex justify-between items-start mb-4">
-                            <h3 className="text-lg font-bold text-white flex items-center gap-2">
-                                {project.title}
-                                <CheckCircle className="h-5 w-5 text-green-500" />
-                            </h3>
-                            <span className="text-sm font-mono text-green-400">{project.budget}</span>
+                            <div>
+                                <h3 className="text-lg font-bold text-white flex items-center gap-2">
+                                    {project.title}
+                                    <CheckCircle className="h-5 w-5 text-green-500" />
+                                </h3>
+                                <p className="text-slate-400 text-sm mt-1">{project.description}</p>
+                            </div>
+                            <div className="flex flex-col items-end gap-2">
+                                <span className="text-sm font-mono text-green-400 bg-green-500/10 px-3 py-1 rounded-full border border-green-500/20">
+                                    {project.budget}
+                                </span>
+                                {project.rating ? (
+                                    <div className="flex items-center gap-1 text-yellow-400 text-sm bg-yellow-400/10 px-3 py-1 rounded-full border border-yellow-400/20">
+                                        <Star className="h-3 w-3 fill-yellow-400" />
+                                        <span>{project.rating}.0</span>
+                                    </div>
+                                ) : (
+                                    <Button 
+                                        size="sm" 
+                                        variant="outline"
+                                        onClick={() => handleRateClick(project)}
+                                        className="border-yellow-500/50 text-yellow-400 hover:bg-yellow-500/10"
+                                    >
+                                        <Star className="h-3 w-3 mr-1" />
+                                        Rate Editor
+                                    </Button>
+                                )}
+                            </div>
                         </div>
                         
-                        <p className="text-slate-400 text-sm mb-6">{project.description}</p>
-                        
                         {project.submission_url && (
-                            <div className="bg-slate-900/50 p-4 rounded-lg border border-white/5 flex items-center justify-between">
+                            <div className="bg-slate-900/50 p-4 rounded-lg border border-white/5 flex items-center justify-between mt-4">
                                 <div className="overflow-hidden mr-4">
                                     <p className="text-xs text-slate-500 uppercase tracking-wider font-bold mb-1">Final Submission</p>
                                     <a href={project.submission_url} target="_blank" rel="noreferrer" className="text-primary-400 text-sm truncate block hover:underline">
@@ -75,6 +131,15 @@ const ClientCompletedProjectsPage: React.FC = () => {
                 ))
             )}
         </div>
+
+        {isRatingModalOpen && (
+            <RatingModal
+                isOpen={isRatingModalOpen}
+                onClose={() => setIsRatingModalOpen(false)}
+                onSubmit={handleRatingSubmit}
+                isSubmitting={isSubmittingRating}
+            />
+        )}
     </ClientLayout>
   );
 };

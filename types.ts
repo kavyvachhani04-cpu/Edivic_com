@@ -37,7 +37,9 @@ export interface Project {
   description: string;
   budget: string;
   deadline: string;
-  status: 'pending' | 'in_progress' | 'submitted' | 'completed';
+  status: 'pending' | 'in_progress' | 'submitted' | 'completed' | 'cancelled';
   submission_url?: string;
   created_at: string;
+  rating?: number;
+  feedback?: string;
 }

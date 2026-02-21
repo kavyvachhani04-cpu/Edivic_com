@@ -52,7 +52,7 @@ const PLANS = [
 ];
 
 const EditorSubscriptionPage: React.FC = () => {
-  const { user, refreshUser } = useAuth();
+  const { user, refreshUser, updateUser } = useAuth();
   const navigate = useNavigate();
   const [loadingPlan, setLoadingPlan] = useState<string | null>(null);
 
@@ -75,7 +75,16 @@ const EditorSubscriptionPage: React.FC = () => {
 
       if (error) throw error;
 
-      await refreshUser();
+      // Optimistically update local state to pass the guard immediately
+      updateUser({
+        subscription_status: 'active',
+        plan_name: planName,
+        subscription_expiry: expiryDate.toISOString()
+      });
+
+      // Background refresh (optional, but good for consistency)
+      refreshUser();
+      
       navigate('/dashboard-editor');
     } catch (err) {
       console.error('Subscription error:', err);

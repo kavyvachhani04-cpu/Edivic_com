@@ -9,18 +9,24 @@ interface AuthContextType {
   loading: boolean;
   isAdmin: boolean;
   refreshUser: (session?: any) => Promise<void>;
+  updateUser: (updates: Partial<User>) => void;
 }
 
 const AuthContext = createContext<AuthContextType>({ 
   user: null, 
   loading: true, 
   isAdmin: false,
-  refreshUser: async () => {} 
+  refreshUser: async () => {},
+  updateUser: () => {}
 });
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+
+  const updateUser = (updates: Partial<User>) => {
+    setUser(prev => prev ? { ...prev, ...updates } : null);
+  };
 
   const fetchExtendedProfile = async (userId: string) => {
     const { data, error } = await supabase
@@ -124,7 +130,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const isAdmin = user?.role === 'admin';
 
   return (
-    <AuthContext.Provider value={{ user, loading, isAdmin, refreshUser }}>
+    <AuthContext.Provider value={{ user, loading, isAdmin, refreshUser, updateUser }}>
       {children}
     </AuthContext.Provider>
   );

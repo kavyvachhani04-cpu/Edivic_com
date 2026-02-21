@@ -12,6 +12,7 @@ interface EditorProfile {
     name: string;
     skills?: string;
     bio?: string;
+    avgRating?: string;
 }
 
 const ClientDashboard: React.FC = () => {
@@ -64,14 +65,31 @@ const ClientDashboard: React.FC = () => {
   const fetchEditors = async () => {
       setLoadingEditors(true);
       try {
-          const { data, error } = await supabase
+          // Fetch editors
+          const { data: editorsData, error } = await supabase
             .from('profiles')
             .select('id, name, skills, bio')
             .eq('role', 'editor')
-            .limit(9); // Limit to top 9 recent editors
+            .limit(9);
           
           if (error) throw error;
-          setEditors(data || []);
+
+          // Fetch ratings for these editors
+          const editorsWithRatings = await Promise.all((editorsData || []).map(async (editor) => {
+              const { data: ratings } = await supabase
+                  .from('projects')
+                  .select('rating')
+                  .eq('editor_id', editor.id)
+                  .not('rating', 'is', null);
+              
+              const avgRating = ratings && ratings.length > 0
+                  ? ratings.reduce((acc, curr) => acc + (curr.rating || 0), 0) / ratings.length
+                  : 5.0; // Default to 5.0 if no ratings yet (new editor boost)
+
+              return { ...editor, avgRating: avgRating.toFixed(1) };
+          }));
+
+          setEditors(editorsWithRatings);
       } catch (e) {
           console.error('Error fetching editors:', e);
       } finally {
@@ -171,7 +189,7 @@ const ClientDashboard: React.FC = () => {
                                         <Star className="h-3 w-3 fill-yellow-500" />
                                         <Star className="h-3 w-3 fill-yellow-500" />
                                         <Star className="h-3 w-3 fill-yellow-500" />
-                                        <span className="text-slate-500 ml-1">(5.0)</span>
+                                        <span className="text-slate-500 ml-1">({editor.avgRating || '5.0'})</span>
                                     </div>
                                 </div>
                             </div>
