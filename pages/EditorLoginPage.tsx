@@ -7,12 +7,19 @@ import { Button } from '../components/Button';
 import { MonitorPlay } from 'lucide-react';
 
 const EditorLoginPage: React.FC = () => {
-  const { refreshUser } = useAuth();
+  const { user, refreshUser } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+
+  // Auto-redirect if user is already logged in
+  React.useEffect(() => {
+    if (user && user.role === 'editor') {
+      navigate('/dashboard-editor');
+    }
+  }, [user, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -20,10 +27,16 @@ const EditorLoginPage: React.FC = () => {
     setLoading(true);
 
     try {
-      const { data, error: authError } = await supabase.auth.signInWithPassword({
+      // Add timeout to signInWithPassword
+      const signInPromise = supabase.auth.signInWithPassword({
         email,
         password,
       });
+      const timeoutPromise = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('Connection timed out')), 5000)
+      );
+
+      const { data, error: authError } = await Promise.race([signInPromise, timeoutPromise]) as any;
 
       if (authError) throw authError;
 
@@ -37,7 +50,10 @@ const EditorLoginPage: React.FC = () => {
       }
 
       if (data.session) {
-        await refreshUser(data.session);
+        // Race refreshUser with a timeout to prevent hanging
+        const timeout = new Promise((resolve) => setTimeout(resolve, 3000));
+        await Promise.race([refreshUser(data.session), timeout]);
+        
         navigate('/dashboard-editor');
       } else {
         throw new Error('No session created');

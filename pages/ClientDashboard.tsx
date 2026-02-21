@@ -41,6 +41,47 @@ const ClientDashboard: React.FC = () => {
   }, [user, loading, navigate]);
 
   // ... fetch functions ...
+  const fetchStats = async () => {
+    if (!user) return;
+    try {
+        const { data } = await supabase
+            .from('projects')
+            .select('status')
+            .eq('client_id', user.id);
+        
+        if (data) {
+            const total = data.length;
+            const inProgress = data.filter(p => p.status === 'in_progress').length;
+            const completed = data.filter(p => p.status === 'completed').length;
+            
+            setStats({ total, inProgress, completed });
+        }
+    } catch (e) {
+        console.error('Error fetching stats:', e);
+    }
+  };
+
+  const fetchEditors = async () => {
+      setLoadingEditors(true);
+      try {
+          const { data, error } = await supabase
+            .from('profiles')
+            .select('id, name, skills, bio')
+            .eq('role', 'editor')
+            .limit(9); // Limit to top 9 recent editors
+          
+          if (error) throw error;
+          setEditors(data || []);
+      } catch (e) {
+          console.error('Error fetching editors:', e);
+      } finally {
+          setLoadingEditors(false);
+      }
+  };
+
+  const handleHireClick = (editorName: string) => {
+      navigate(`/client/post-project?hire=${encodeURIComponent(editorName)}`);
+  };
 
   if (loading || !user) return <LoadingScreen />;
 

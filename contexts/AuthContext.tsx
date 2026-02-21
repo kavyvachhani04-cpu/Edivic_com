@@ -39,7 +39,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     let role = sbUser.user_metadata?.role || 'user';
     if (isEmailAdmin) role = 'admin';
 
-    const profile = await fetchExtendedProfile(sbUser.id);
+    // Timeout wrapper for profile fetch
+    const fetchProfileWithTimeout = async () => {
+      const timeout = new Promise((_, reject) => setTimeout(() => reject(new Error('Profile fetch timeout')), 5000));
+      const fetch = fetchExtendedProfile(sbUser.id);
+      return Promise.race([fetch, timeout]);
+    };
+
+    let profile: any = null;
+    try {
+      profile = await fetchProfileWithTimeout();
+    } catch (error) {
+      console.warn('Profile fetch failed or timed out:', error);
+      // Fallback: proceed without extended profile data
+    }
 
     return {
       id: sbUser.id,
@@ -56,7 +69,25 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const refreshUser = async (session?: any) => {
     try {
-      const currentSession = session || (await supabase.auth.getSession()).data.session;
+      // Add timeout to getSession as well
+      const getSessionWithTimeout = async () => {
+         // Reduced timeout to 2s for faster fallback
+         const timeout = new Promise((_, reject) => setTimeout(() => reject(new Error('Session fetch timeout')), 2000));
+         const fetch = supabase.auth.getSession();
+         return Promise.race([fetch, timeout]);
+      };
+
+      let currentSession = session;
+      
+      if (!currentSession) {
+        try {
+            const result = await getSessionWithTimeout() as any;
+            currentSession = result.data.session;
+        } catch (e) {
+            console.warn('Session fetch timed out or failed, defaulting to guest.');
+            currentSession = null;
+        }
+      }
       
       if (currentSession?.user) {
         const mappedUser = await mapSupabaseUser(currentSession.user);
@@ -65,7 +96,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setUser(null);
       }
     } catch (error) {
-      console.error('Error fetching session:', error);
+      console.error('Error in refreshUser:', error);
       setUser(null);
     } finally {
       setLoading(false);
@@ -73,7 +104,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   useEffect(() => {
-    // refreshUser(); // Removed to prevent double-fetching. onAuthStateChange handles initial session.
+    refreshUser(); // Restore initial check
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
       if (session?.user) {
