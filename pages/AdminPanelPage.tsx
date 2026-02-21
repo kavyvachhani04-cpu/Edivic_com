@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
-import { Trash2, Shield, LogOut, Search, AlertCircle, Users, MessageSquare, Mail, Settings, Key } from 'lucide-react';
+import { Trash2, Shield, LogOut, Search, AlertCircle, Users, MessageSquare, Mail, Settings, Key, Briefcase } from 'lucide-react';
 import { Button } from '../components/Button';
 import { Input } from '../components/Input';
 
@@ -10,9 +10,10 @@ const AdminPanelPage: React.FC = () => {
   const { user, loading: authLoading, isAdmin } = useAuth();
   
   // State
-  const [activeTab, setActiveTab] = useState<'users' | 'inquiries' | 'settings'>('users');
+  const [activeTab, setActiveTab] = useState<'users' | 'inquiries' | 'settings' | 'projects'>('users');
   const [users, setUsers] = useState<any[]>([]);
   const [inquiries, setInquiries] = useState<any[]>([]);
+  const [projects, setProjects] = useState<any[]>([]);
   const [loadingData, setLoadingData] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [fetchError, setFetchError] = useState('');
@@ -72,6 +73,22 @@ const AdminPanelPage: React.FC = () => {
           } else {
              setInquiries(data || []);
           }
+      } else if (activeTab === 'projects') {
+          // Fetch Projects
+          const { data, error } = await supabase
+            .from('projects')
+            .select('*')
+            .order('created_at', { ascending: false });
+
+          if (error) {
+             if (error.code === '42P01') {
+                setFetchError("Table 'projects' not found.");
+             } else {
+                throw error;
+             }
+          } else {
+             setProjects(data || []);
+          }
       }
     } catch (error: any) {
       console.error('Error fetching data:', error);
@@ -102,6 +119,18 @@ const AdminPanelPage: React.FC = () => {
     if (window.confirm('Delete this inquiry?')) {
         try {
             const { error } = await supabase.from('inquiries').delete().eq('id', id);
+            if (error) throw error;
+            fetchData();
+        } catch (error: any) {
+            alert('Error: ' + error.message);
+        }
+    }
+  }
+
+  const handleDeleteProject = async (id: string) => {
+    if (window.confirm('Are you sure you want to delete this project?')) {
+        try {
+            const { error } = await supabase.from('projects').delete().eq('id', id);
             if (error) throw error;
             fetchData();
         } catch (error: any) {
@@ -146,6 +175,12 @@ const AdminPanelPage: React.FC = () => {
     (i.name || '').toLowerCase().includes(searchTerm.toLowerCase()) || 
     (i.email || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
     (i.message || '').toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  const filteredProjects = projects.filter(p => 
+    (p.title || '').toLowerCase().includes(searchTerm.toLowerCase()) || 
+    (p.description || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (p.status || '').toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   if (authLoading) return <div className="min-h-screen bg-slate-900 flex items-center justify-center text-white">Loading...</div>;
@@ -214,6 +249,15 @@ const AdminPanelPage: React.FC = () => {
                 >
                     <MessageSquare className="h-4 w-4" />
                     <span>Inquiries</span>
+                </button>
+                <button
+                    onClick={() => setActiveTab('projects')}
+                    className={`flex items-center space-x-2 px-4 py-2 rounded-md text-sm font-medium transition-all ${
+                        activeTab === 'projects' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-600 hover:text-slate-900'
+                    }`}
+                >
+                    <Briefcase className="h-4 w-4" />
+                    <span>Projects</span>
                 </button>
                 <button
                     onClick={() => setActiveTab('settings')}
@@ -335,6 +379,63 @@ const AdminPanelPage: React.FC = () => {
                     )}
                 </tbody>
                 </table>
+            ) : activeTab === 'projects' ? (
+                // PROJECTS TABLE
+                <table className="min-w-full divide-y divide-slate-200">
+                <thead className="bg-slate-50">
+                    <tr>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Title</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Budget</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Status</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Date</th>
+                    <th className="px-6 py-3 text-right text-xs font-medium text-slate-500 uppercase tracking-wider">Actions</th>
+                    </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-slate-200">
+                    {loadingData ? (
+                        <tr><td colSpan={5} className="px-6 py-12 text-center text-slate-500">Loading projects...</td></tr>
+                    ) : filteredProjects.length > 0 ? (
+                    filteredProjects.map((p) => (
+                        <tr key={p.id} className="hover:bg-slate-50">
+                        <td className="px-6 py-4">
+                            <div className="flex items-center">
+                                <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-700 font-bold shrink-0">
+                                    <Briefcase className="h-5 w-5" />
+                                </div>
+                                <div className="ml-4">
+                                    <div className="text-sm font-medium text-slate-900">{p.title}</div>
+                                    <div className="text-sm text-slate-500 line-clamp-1 max-w-xs">{p.description}</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-500">
+                            {p.budget}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                            <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                                p.status === 'completed' ? 'bg-green-100 text-green-800' :
+                                p.status === 'in_progress' ? 'bg-blue-100 text-blue-800' :
+                                p.status === 'cancelled' ? 'bg-red-100 text-red-800' :
+                                'bg-amber-100 text-amber-800'
+                            }`}>
+                                {p.status.replace('_', ' ')}
+                            </span>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-500">
+                            {new Date(p.created_at).toLocaleDateString()}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                            <button onClick={() => handleDeleteProject(p.id)} className="text-red-600 hover:bg-red-50 p-2 rounded">
+                                <Trash2 className="h-4 w-4" />
+                            </button>
+                        </td>
+                        </tr>
+                    ))
+                    ) : (
+                        <tr><td colSpan={5} className="px-6 py-12 text-center text-slate-500">No projects found.</td></tr>
+                    )}
+                </tbody>
+                </table>
             ) : (
                 // SETTINGS TAB
                 <div className="p-8 max-w-2xl">
@@ -376,7 +477,11 @@ const AdminPanelPage: React.FC = () => {
           
           {activeTab !== 'settings' && (
             <div className="bg-slate-50 px-6 py-3 border-t border-slate-200 text-sm text-slate-500">
-                Showing {activeTab === 'users' ? filteredUsers.length : filteredInquiries.length} results
+                Showing {
+                    activeTab === 'users' ? filteredUsers.length : 
+                    activeTab === 'inquiries' ? filteredInquiries.length :
+                    filteredProjects.length
+                } results
             </div>
           )}
         </div>
