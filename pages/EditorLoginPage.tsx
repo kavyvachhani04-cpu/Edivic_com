@@ -36,8 +36,12 @@ const EditorLoginPage: React.FC = () => {
         return;
       }
 
-      await refreshUser();
-      navigate('/dashboard-editor');
+      if (data.session) {
+        await refreshUser(data.session);
+        navigate('/dashboard-editor');
+      } else {
+        throw new Error('No session created');
+      }
 
     } catch (err: any) {
       console.error('Login error:', err);

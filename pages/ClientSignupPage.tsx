@@ -47,7 +47,7 @@ const ClientSignupPage: React.FC = () => {
         if (profileError) console.warn('Profile creation warning:', profileError.message);
       }
 
-      await refreshUser();
+      await refreshUser(data.session);
       navigate('/dashboard-client');
 
     } catch (err: any) {

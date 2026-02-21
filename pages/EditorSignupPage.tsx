@@ -45,7 +45,7 @@ const EditorSignupPage: React.FC = () => {
         if (profileError) console.warn('Profile creation warning:', profileError.message);
       }
 
-      await refreshUser();
+      await refreshUser(data.session);
       navigate('/dashboard-editor');
 
     } catch (err: any) {

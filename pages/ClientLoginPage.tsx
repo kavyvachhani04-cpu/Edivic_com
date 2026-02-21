@@ -36,8 +36,12 @@ const ClientLoginPage: React.FC = () => {
         return;
       }
 
-      await refreshUser();
-      navigate('/dashboard-client');
+      if (data.session) {
+        await refreshUser(data.session);
+        navigate('/dashboard-client');
+      } else {
+        throw new Error('No session created');
+      }
 
     } catch (err: any) {
       console.error('Login error:', err);

@@ -8,7 +8,7 @@ interface AuthContextType {
   user: User | null;
   loading: boolean;
   isAdmin: boolean;
-  refreshUser: () => Promise<void>;
+  refreshUser: (session?: any) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType>({ 
@@ -54,11 +54,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
   };
 
-  const refreshUser = async () => {
+  const refreshUser = async (session?: any) => {
     try {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session?.user) {
-        const mappedUser = await mapSupabaseUser(session.user);
+      const currentSession = session || (await supabase.auth.getSession()).data.session;
+      
+      if (currentSession?.user) {
+        const mappedUser = await mapSupabaseUser(currentSession.user);
         setUser(mappedUser);
       } else {
         setUser(null);
