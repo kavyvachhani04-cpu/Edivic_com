@@ -45,8 +45,15 @@ const EditorSignupPage: React.FC = () => {
         if (profileError) console.warn('Profile creation warning:', profileError.message);
       }
 
-      await refreshUser(data.session);
-      navigate('/dashboard-editor');
+      if (data.session) {
+        await refreshUser(data.session);
+        navigate('/dashboard-editor');
+      } else {
+        // Session is null, meaning email confirmation is required
+        setError('Account created! Please check your email to confirm your account before logging in.');
+        setLoading(false);
+        return;
+      }
 
     } catch (err: any) {
       console.error('Signup error:', err);

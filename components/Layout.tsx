@@ -35,54 +35,57 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
 
   return (
     <div className="min-h-screen flex flex-col bg-background text-slate-100">
-      <header className="sticky top-0 z-50 glass border-b border-white/5">
+      <header className="sticky top-0 z-50 bg-black/80 backdrop-blur-md border-b border-white/5">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between h-20 items-center">
+            {/* Logo */}
             <Link to="/" className="flex items-center space-x-3 group">
-              <div className="bg-gradient-to-br from-primary-500 to-blue-600 p-2 rounded-lg group-hover:shadow-[0_0_15px_rgba(14,165,233,0.6)] transition-all">
-                <Rocket className="h-6 w-6 text-white" />
+              <div className="border border-gold p-1.5 rounded-lg group-hover:shadow-[0_0_15px_rgba(212,175,55,0.4)] transition-all">
+                <Rocket className="h-5 w-5 text-gold" />
               </div>
-              <span className="text-2xl font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-white to-slate-400">
+              <span className="text-2xl font-bold tracking-tight text-gold">
                 EDIVIC
               </span>
             </Link>
 
-            {/* Desktop Nav */}
-            <nav className="hidden md:flex items-center space-x-8">
+            {/* Desktop Nav - Centered */}
+            <nav className="hidden md:flex items-center space-x-8 absolute left-1/2 transform -translate-x-1/2">
               {!user && (
                 <>
-                  <Link to="/" className="text-sm font-medium text-slate-400 hover:text-primary-400 transition-colors">Home</Link>
-                  <Link to="/about" className="text-sm font-medium text-slate-400 hover:text-primary-400 transition-colors">About Us</Link>
-                  <Link to="/contact" className="text-sm font-medium text-slate-400 hover:text-primary-400 transition-colors">Contact</Link>
+                  <Link to="/" className="text-sm font-medium text-white nav-link-active transition-colors">Home</Link>
+                  <Link to="/about" className="text-sm font-medium text-slate-400 hover:text-gold transition-colors">About Us</Link>
+                  <Link to="/contact" className="text-sm font-medium text-slate-400 hover:text-gold transition-colors">Contact</Link>
                 </>
               )}
             </nav>
 
-            <div className="hidden md:flex items-center space-x-4">
+            {/* Right Side Actions */}
+            <div className="hidden md:flex items-center space-x-6">
               {loading ? (
                 <div className="h-10 w-24 bg-slate-800 animate-pulse rounded"></div>
               ) : user ? (
                 <div className="flex items-center gap-4">
                    <div className="text-right hidden lg:block">
                      <p className="text-sm font-medium text-white">{user.name}</p>
-                     <p className="text-xs text-primary-400 uppercase tracking-wider">{user.role}</p>
+                     <p className="text-xs text-gold uppercase tracking-wider">{user.role}</p>
                    </div>
                    <Link to={getDashboardLink()}>
-                    <Button variant="primary" size="sm">Dashboard</Button>
+                    <Button variant="primary" size="sm" className="bg-gold hover:bg-gold-dark text-black border-none font-bold">Dashboard</Button>
                   </Link>
                 </div>
               ) : (
-                <div className="flex items-center gap-3">
-                  <div className="hidden lg:flex items-center gap-3 mr-4 border-r border-slate-700 pr-4">
-                     <Link to="/login-editor" className="text-sm font-medium text-slate-400 hover:text-white">Editor Login</Link>
-                     <Link to="/login-client" className="text-sm font-medium text-slate-400 hover:text-white">Client Login</Link>
-                  </div>
-                  <Link to="/signup-client">
-                    <Button variant="outline" size="sm">Hire Editors</Button>
-                  </Link>
-                  <Link to="/signup-editor">
-                    <Button variant="primary" size="sm">Find Work</Button>
-                  </Link>
+                <div className="flex items-center gap-6">
+                   <Link to="/login-editor" className="text-sm font-medium text-slate-300 hover:text-gold transition-colors">
+                     Editor Login
+                   </Link>
+                   <Link to="/login-client" className="text-sm font-medium text-slate-300 hover:text-gold transition-colors">
+                     Client Login
+                   </Link>
+                   <Link to="/signup-editor">
+                    <button className="px-6 py-2 text-xs font-bold text-gold border border-gold rounded hover:bg-gold/10 transition-all uppercase tracking-widest">
+                      FIND WORK
+                    </button>
+                   </Link>
                 </div>
               )}
             </div>
@@ -91,7 +94,7 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
             <div className="md:hidden">
               <button
                 onClick={() => setIsMenuOpen(!isMenuOpen)}
-                className="text-slate-400 hover:text-white focus:outline-none"
+                className="text-slate-400 hover:text-gold focus:outline-none"
               >
                 {isMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
               </button>

@@ -47,8 +47,15 @@ const ClientSignupPage: React.FC = () => {
         if (profileError) console.warn('Profile creation warning:', profileError.message);
       }
 
-      await refreshUser(data.session);
-      navigate('/dashboard-client');
+      if (data.session) {
+        await refreshUser(data.session);
+        navigate('/dashboard-client');
+      } else {
+        // Session is null, meaning email confirmation is required
+        setError('Account created! Please check your email to confirm your account before logging in.');
+        setLoading(false); // Stop loading state so user can see message
+        return; 
+      }
 
     } catch (err: any) {
       console.error('Signup error:', err);
