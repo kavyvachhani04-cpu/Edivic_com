@@ -70,61 +70,61 @@ const EditorDashboard: React.FC = () => {
         
         {/* Stats Grid */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
-            <div className="glass p-6 rounded-2xl border border-white/5 relative overflow-hidden group">
+            <div className="glass p-6 rounded-2xl border border-white/10 relative overflow-hidden group hover:border-gold/30 transition-all duration-300">
                 <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
-                    <Search className="h-24 w-24 text-white" />
+                    <Search className="h-24 w-24 text-gold" />
                 </div>
                 <div className="flex items-center gap-4 mb-4">
-                    <div className="p-3 bg-blue-500/20 rounded-xl text-blue-400">
+                    <div className="p-3 bg-white/5 rounded-xl border border-white/10 text-gold">
                         <Search className="h-6 w-6" />
                     </div>
                     <span className="text-sm font-medium text-slate-400">Available Projects</span>
                 </div>
-                <div className="text-4xl font-bold text-white mb-1">{stats.available}</div>
+                <div className="text-4xl font-bold text-white mb-1 font-display">{stats.available}</div>
                 <p className="text-xs text-slate-500">Pending client requests</p>
                 <button 
                     onClick={() => navigate('/editor/find-projects')}
-                    className="mt-4 text-sm text-blue-400 flex items-center hover:text-blue-300 transition-colors"
+                    className="mt-4 text-sm text-gold flex items-center hover:text-white transition-colors"
                 >
                     Find Work <ArrowUpRight className="h-3 w-3 ml-1" />
                 </button>
             </div>
 
-            <div className="glass p-6 rounded-2xl border border-white/5 relative overflow-hidden group">
+            <div className="glass p-6 rounded-2xl border border-white/10 relative overflow-hidden group hover:border-gold/30 transition-all duration-300">
                 <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
-                    <Briefcase className="h-24 w-24 text-white" />
+                    <Briefcase className="h-24 w-24 text-gold" />
                 </div>
                 <div className="flex items-center gap-4 mb-4">
-                    <div className="p-3 bg-purple-500/20 rounded-xl text-purple-400">
+                    <div className="p-3 bg-white/5 rounded-xl border border-white/10 text-gold">
                         <Clock className="h-6 w-6" />
                     </div>
                     <span className="text-sm font-medium text-slate-400">Active Jobs</span>
                 </div>
-                <div className="text-4xl font-bold text-white mb-1">{stats.active}</div>
+                <div className="text-4xl font-bold text-white mb-1 font-display">{stats.active}</div>
                 <p className="text-xs text-slate-500">Currently in progress</p>
                 <button 
                     onClick={() => navigate('/editor/my-projects')}
-                    className="mt-4 text-sm text-purple-400 flex items-center hover:text-purple-300 transition-colors"
+                    className="mt-4 text-sm text-gold flex items-center hover:text-white transition-colors"
                 >
                     View Active <ArrowUpRight className="h-3 w-3 ml-1" />
                 </button>
             </div>
 
-            <div className="glass p-6 rounded-2xl border border-white/5 relative overflow-hidden group">
+            <div className="glass p-6 rounded-2xl border border-white/10 relative overflow-hidden group hover:border-gold/30 transition-all duration-300">
                 <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
-                    <CheckCircle className="h-24 w-24 text-white" />
+                    <CheckCircle className="h-24 w-24 text-gold" />
                 </div>
                 <div className="flex items-center gap-4 mb-4">
-                    <div className="p-3 bg-green-500/20 rounded-xl text-green-400">
+                    <div className="p-3 bg-white/5 rounded-xl border border-white/10 text-gold">
                         <CheckCircle className="h-6 w-6" />
                     </div>
                     <span className="text-sm font-medium text-slate-400">Completed</span>
                 </div>
-                <div className="text-4xl font-bold text-white mb-1">{stats.completed}</div>
+                <div className="text-4xl font-bold text-white mb-1 font-display">{stats.completed}</div>
                 <p className="text-xs text-slate-500">Successfully delivered</p>
                 <button 
                     onClick={() => navigate('/editor/completed-projects')}
-                    className="mt-4 text-sm text-green-400 flex items-center hover:text-green-300 transition-colors"
+                    className="mt-4 text-sm text-gold flex items-center hover:text-white transition-colors"
                 >
                     View History <ArrowUpRight className="h-3 w-3 ml-1" />
                 </button>
@@ -132,17 +132,17 @@ const EditorDashboard: React.FC = () => {
         </div>
 
         {/* Quick Tips Section */}
-        <div className="bg-gradient-to-r from-slate-800 to-slate-900 rounded-2xl p-8 border border-white/5">
-            <h3 className="text-lg font-bold text-white mb-4">Tips for Success</h3>
+        <div className="bg-surface rounded-2xl p-8 border border-white/10">
+            <h3 className="text-lg font-bold text-white mb-4 font-display">Tips for Success</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="flex gap-4">
-                    <div className="h-8 w-8 rounded-full bg-slate-700 flex items-center justify-center text-white font-bold flex-shrink-0">1</div>
+                    <div className="h-8 w-8 rounded-full bg-white/10 flex items-center justify-center text-gold font-bold flex-shrink-0 border border-white/10">1</div>
                     <p className="text-slate-400 text-sm leading-relaxed">
                         Always read the project description carefully before accepting. Ensure the budget and deadline work for you.
                     </p>
                 </div>
                 <div className="flex gap-4">
-                    <div className="h-8 w-8 rounded-full bg-slate-700 flex items-center justify-center text-white font-bold flex-shrink-0">2</div>
+                    <div className="h-8 w-8 rounded-full bg-white/10 flex items-center justify-center text-gold font-bold flex-shrink-0 border border-white/10">2</div>
                     <p className="text-slate-400 text-sm leading-relaxed">
                         Communicate clearly with the client if provided. High quality work leads to repeat clients.
                     </p>

@@ -95,13 +95,17 @@ const EditorSubscriptionPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-slate-900 py-20 px-4">
+    <div className="min-h-screen bg-black py-20 px-4 selection:bg-gold selection:text-black">
       <div className="max-w-6xl mx-auto">
         <div className="text-center mb-16">
-          <h1 className="text-4xl md:text-5xl font-extrabold text-white mb-4">
-            Activate Your <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-indigo-500">Editor Studio</span>
+          <div className="inline-flex items-center px-4 py-1.5 rounded-full border border-white/10 bg-white/5 text-slate-300 text-sm font-medium mb-8">
+            <span className="flex h-2 w-2 rounded-full bg-gold mr-3"></span>
+            Upgrade Your Career
+          </div>
+          <h1 className="text-4xl md:text-5xl font-bold text-white mb-4 font-display">
+            Activate Your <span className="text-gold">Editor Studio</span>
           </h1>
-          <p className="text-slate-400 text-lg max-w-2xl mx-auto">
+          <p className="text-slate-400 text-lg max-w-2xl mx-auto font-light">
             Choose a plan to start accepting high-paying video editing projects. 
             Join 5,000+ editors growing their careers on EDIVIC.
           </p>
@@ -111,34 +115,34 @@ const EditorSubscriptionPage: React.FC = () => {
           {PLANS.map((plan) => (
             <div 
               key={plan.id}
-              className={`glass p-8 rounded-3xl border ${plan.popular ? 'border-purple-500/50 scale-105 shadow-[0_0_30px_rgba(147,51,234,0.15)]' : 'border-white/5'} flex flex-col relative`}
+              className={`glass p-8 rounded-3xl border ${plan.popular ? 'border-gold scale-105 shadow-[0_0_30px_rgba(212,175,55,0.15)] bg-white/5' : 'border-white/10 hover:border-gold/30'} flex flex-col relative transition-all duration-300`}
             >
               {plan.popular && (
-                <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-purple-500 text-white text-[10px] font-bold uppercase tracking-widest px-3 py-1 rounded-full">
+                <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-gold text-black text-[10px] font-bold uppercase tracking-widest px-3 py-1 rounded-full shadow-lg shadow-gold/20">
                   Most Popular
                 </div>
               )}
 
               <div className="flex items-center gap-4 mb-6">
-                <div className={`p-3 rounded-2xl bg-slate-800 border border-white/5`}>
-                  {plan.icon}
+                <div className={`p-3 rounded-2xl bg-white/5 border border-white/10 ${plan.popular ? 'text-gold' : 'text-slate-400'}`}>
+                  {React.cloneElement(plan.icon as React.ReactElement, { className: `h-6 w-6 ${plan.popular ? 'text-gold' : 'text-slate-400'}` })}
                 </div>
                 <div>
-                  <h3 className="text-xl font-bold text-white">{plan.name}</h3>
+                  <h3 className={`text-xl font-bold ${plan.popular ? 'text-gold' : 'text-white'} font-display`}>{plan.name}</h3>
                   <p className="text-slate-500 text-sm">Monthly Subscription</p>
                 </div>
               </div>
 
               <div className="mb-8">
-                <span className="text-4xl font-bold text-white">₹{plan.price}</span>
+                <span className="text-4xl font-bold text-white font-display">₹{plan.price}</span>
                 <span className="text-slate-500"> /month</span>
               </div>
 
               <div className="space-y-4 mb-10 flex-grow">
                 {plan.features.map((feature, i) => (
                   <div key={i} className="flex items-start gap-3 text-sm text-slate-300">
-                    <Check className="h-5 w-5 text-green-500 shrink-0" />
-                    <span>{feature}</span>
+                    <Check className={`h-5 w-5 shrink-0 ${plan.popular ? 'text-gold' : 'text-slate-500'}`} />
+                    <span className="font-light">{feature}</span>
                   </div>
                 ))}
               </div>
@@ -148,7 +152,7 @@ const EditorSubscriptionPage: React.FC = () => {
                 variant={plan.popular ? 'primary' : 'outline'}
                 disabled={loadingPlan !== null || (user?.plan_name === plan.name && user?.subscription_status === 'active')}
                 onClick={() => handleSubscribe(plan.id, plan.name)}
-                className={plan.popular ? 'bg-gradient-to-r from-purple-500 to-indigo-600' : ''}
+                className={plan.popular ? 'bg-gold hover:bg-gold-dark text-black border-none font-bold shadow-lg shadow-gold/10' : 'border-white/20 hover:border-gold hover:text-gold text-slate-300'}
               >
                 {loadingPlan === plan.id ? 'Processing...' : 
                  (user?.plan_name === plan.name && user?.subscription_status === 'active') ? 'Current Plan' : 'Subscribe Now'}
@@ -158,8 +162,8 @@ const EditorSubscriptionPage: React.FC = () => {
         </div>
 
         <div className="mt-16 text-center">
-          <div className="inline-flex items-center gap-2 px-4 py-2 bg-slate-800/50 rounded-full border border-white/5 text-slate-500 text-sm">
-            <ShieldCheck className="h-4 w-4" />
+          <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/5 rounded-full border border-white/10 text-slate-400 text-sm">
+            <ShieldCheck className="h-4 w-4 text-gold" />
             Secure payments via Razorpay Test Gateway
           </div>
         </div>

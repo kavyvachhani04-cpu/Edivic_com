@@ -183,22 +183,22 @@ const AdminPanelPage: React.FC = () => {
     (p.status || '').toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  if (authLoading) return <div className="min-h-screen bg-slate-900 flex items-center justify-center text-white">Loading...</div>;
+  if (authLoading) return <div className="min-h-screen bg-black flex items-center justify-center text-gold">Loading...</div>;
 
   return (
-    <div className="min-h-screen bg-slate-50">
-      <nav className="bg-slate-900 text-white shadow-lg sticky top-0 z-50">
+    <div className="min-h-screen bg-black selection:bg-gold selection:text-black">
+      <nav className="bg-surface border-b border-white/10 sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between h-16 items-center">
             <div className="flex items-center space-x-3">
-              <Shield className="h-6 w-6 text-indigo-400" />
-              <span className="font-bold text-lg tracking-tight">Admin Console</span>
+              <Shield className="h-6 w-6 text-gold" />
+              <span className="font-bold text-lg tracking-tight text-white font-display">Admin Console</span>
             </div>
             <div className="flex items-center space-x-4">
               <span className="text-sm text-slate-400 hidden sm:inline">System Admin</span>
               <button 
                 onClick={handleLogout}
-                className="p-2 rounded-full hover:bg-slate-800 transition-colors"
+                className="p-2 rounded-full hover:bg-white/10 transition-colors text-slate-400 hover:text-white"
                 title="Logout"
               >
                 <LogOut className="h-5 w-5" />
@@ -214,28 +214,28 @@ const AdminPanelPage: React.FC = () => {
         <div className="mb-8">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
                 <div>
-                    <h1 className="text-2xl font-bold text-slate-900">Dashboard</h1>
-                    <p className="text-slate-500 mt-1">Overview of system activity.</p>
+                    <h1 className="text-2xl font-bold text-white font-display">Dashboard</h1>
+                    <p className="text-slate-400 mt-1">Overview of system activity.</p>
                 </div>
                 {activeTab !== 'settings' && (
                     <div className="relative">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500" />
                         <input
                         type="text"
                         placeholder={`Search ${activeTab}...`}
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
-                        className="pl-10 pr-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 w-full sm:w-64"
+                        className="pl-10 pr-4 py-2 bg-surface border border-white/10 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-gold focus:ring-1 focus:ring-gold w-full sm:w-64"
                         />
                     </div>
                 )}
             </div>
 
-            <div className="flex space-x-1 bg-slate-200 p-1 rounded-lg w-fit">
+            <div className="flex space-x-1 bg-surface p-1 rounded-lg w-fit border border-white/10">
                 <button
                     onClick={() => setActiveTab('users')}
                     className={`flex items-center space-x-2 px-4 py-2 rounded-md text-sm font-medium transition-all ${
-                        activeTab === 'users' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-600 hover:text-slate-900'
+                        activeTab === 'users' ? 'bg-gold text-black shadow-sm' : 'text-slate-400 hover:text-white hover:bg-white/5'
                     }`}
                 >
                     <Users className="h-4 w-4" />
@@ -244,7 +244,7 @@ const AdminPanelPage: React.FC = () => {
                 <button
                     onClick={() => setActiveTab('inquiries')}
                     className={`flex items-center space-x-2 px-4 py-2 rounded-md text-sm font-medium transition-all ${
-                        activeTab === 'inquiries' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-600 hover:text-slate-900'
+                        activeTab === 'inquiries' ? 'bg-gold text-black shadow-sm' : 'text-slate-400 hover:text-white hover:bg-white/5'
                     }`}
                 >
                     <MessageSquare className="h-4 w-4" />
@@ -253,7 +253,7 @@ const AdminPanelPage: React.FC = () => {
                 <button
                     onClick={() => setActiveTab('projects')}
                     className={`flex items-center space-x-2 px-4 py-2 rounded-md text-sm font-medium transition-all ${
-                        activeTab === 'projects' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-600 hover:text-slate-900'
+                        activeTab === 'projects' ? 'bg-gold text-black shadow-sm' : 'text-slate-400 hover:text-white hover:bg-white/5'
                     }`}
                 >
                     <Briefcase className="h-4 w-4" />
@@ -262,7 +262,7 @@ const AdminPanelPage: React.FC = () => {
                 <button
                     onClick={() => setActiveTab('settings')}
                     className={`flex items-center space-x-2 px-4 py-2 rounded-md text-sm font-medium transition-all ${
-                        activeTab === 'settings' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-600 hover:text-slate-900'
+                        activeTab === 'settings' ? 'bg-gold text-black shadow-sm' : 'text-slate-400 hover:text-white hover:bg-white/5'
                     }`}
                 >
                     <Settings className="h-4 w-4" />
@@ -272,7 +272,7 @@ const AdminPanelPage: React.FC = () => {
         </div>
 
         {fetchError && (
-             <div className="mb-6 bg-amber-50 border border-amber-200 text-amber-800 p-4 rounded-lg flex items-start gap-3">
+             <div className="mb-6 bg-red-500/10 border border-red-500/20 text-red-400 p-4 rounded-lg flex items-start gap-3">
                 <AlertCircle className="h-5 w-5 flex-shrink-0 mt-0.5" />
                 <div>
                     <h3 className="font-medium">Database Config Missing</h3>
@@ -281,47 +281,47 @@ const AdminPanelPage: React.FC = () => {
             </div>
         )}
 
-        <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+        <div className="bg-surface rounded-xl shadow-sm border border-white/10 overflow-hidden">
           <div className="overflow-x-auto">
             {activeTab === 'users' ? (
                 // USERS TABLE
-                <table className="min-w-full divide-y divide-slate-200">
-                <thead className="bg-slate-50">
+                <table className="min-w-full divide-y divide-white/10">
+                <thead className="bg-white/5">
                     <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">User</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Role</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Joined</th>
-                    <th className="px-6 py-3 text-right text-xs font-medium text-slate-500 uppercase tracking-wider">Actions</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider">User</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider">Role</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider">Joined</th>
+                    <th className="px-6 py-3 text-right text-xs font-medium text-slate-400 uppercase tracking-wider">Actions</th>
                     </tr>
                 </thead>
-                <tbody className="bg-white divide-y divide-slate-200">
+                <tbody className="bg-surface divide-y divide-white/10">
                     {loadingData ? (
                         <tr><td colSpan={4} className="px-6 py-12 text-center text-slate-500">Loading users...</td></tr>
                     ) : filteredUsers.length > 0 ? (
                     filteredUsers.map((u) => (
-                        <tr key={u.id} className="hover:bg-slate-50">
+                        <tr key={u.id} className="hover:bg-white/5 transition-colors">
                         <td className="px-6 py-4 whitespace-nowrap">
                             <div className="flex items-center">
-                            <div className="h-10 w-10 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-700 font-bold shrink-0">
+                            <div className="h-10 w-10 rounded-full bg-white/10 flex items-center justify-center text-gold font-bold shrink-0 border border-white/10">
                                 {(u.name || u.email || '?').charAt(0).toUpperCase()}
                             </div>
                             <div className="ml-4">
-                                <div className="text-sm font-medium text-slate-900">{u.name || 'Unknown'}</div>
+                                <div className="text-sm font-medium text-white">{u.name || 'Unknown'}</div>
                                 <div className="text-sm text-slate-500">{u.email}</div>
                             </div>
                             </div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
-                            <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${u.role === 'admin' ? 'bg-purple-100 text-purple-800' : 'bg-green-100 text-green-800'}`}>
+                            <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${u.role === 'admin' ? 'bg-purple-500/20 text-purple-400 border border-purple-500/30' : 'bg-green-500/20 text-green-400 border border-green-500/30'}`}>
                             {u.role || 'user'}
                             </span>
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-500">
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-400">
                             {u.created_at ? new Date(u.created_at).toLocaleDateString() : '-'}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                             {u.role !== 'admin' && (
-                            <button onClick={() => handleDeleteUser(u.id)} className="text-red-600 hover:bg-red-50 p-2 rounded">
+                            <button onClick={() => handleDeleteUser(u.id)} className="text-red-400 hover:bg-red-500/10 p-2 rounded transition-colors">
                                 <Trash2 className="h-4 w-4" />
                             </button>
                             )}
@@ -335,40 +335,40 @@ const AdminPanelPage: React.FC = () => {
                 </table>
             ) : activeTab === 'inquiries' ? (
                 // INQUIRIES TABLE
-                <table className="min-w-full divide-y divide-slate-200">
-                <thead className="bg-slate-50">
+                <table className="min-w-full divide-y divide-white/10">
+                <thead className="bg-white/5">
                     <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">From</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Message</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Date</th>
-                    <th className="px-6 py-3 text-right text-xs font-medium text-slate-500 uppercase tracking-wider">Actions</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider">From</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider">Message</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider">Date</th>
+                    <th className="px-6 py-3 text-right text-xs font-medium text-slate-400 uppercase tracking-wider">Actions</th>
                     </tr>
                 </thead>
-                <tbody className="bg-white divide-y divide-slate-200">
+                <tbody className="bg-surface divide-y divide-white/10">
                     {loadingData ? (
                         <tr><td colSpan={4} className="px-6 py-12 text-center text-slate-500">Loading inquiries...</td></tr>
                     ) : filteredInquiries.length > 0 ? (
                     filteredInquiries.map((inq) => (
-                        <tr key={inq.id} className="hover:bg-slate-50">
+                        <tr key={inq.id} className="hover:bg-white/5 transition-colors">
                         <td className="px-6 py-4">
                             <div className="flex items-center">
-                                <div className="h-10 w-10 rounded-full bg-amber-100 flex items-center justify-center text-amber-700 font-bold shrink-0">
+                                <div className="h-10 w-10 rounded-full bg-white/10 flex items-center justify-center text-gold font-bold shrink-0 border border-white/10">
                                     <Mail className="h-5 w-5" />
                                 </div>
                                 <div className="ml-4">
-                                    <div className="text-sm font-medium text-slate-900">{inq.name}</div>
+                                    <div className="text-sm font-medium text-white">{inq.name}</div>
                                     <div className="text-sm text-slate-500">{inq.email}</div>
                                 </div>
                             </div>
                         </td>
                         <td className="px-6 py-4">
-                            <p className="text-sm text-slate-600 line-clamp-2 max-w-xs sm:max-w-md">{inq.message}</p>
+                            <p className="text-sm text-slate-400 line-clamp-2 max-w-xs sm:max-w-md">{inq.message}</p>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-500">
                             {new Date(inq.created_at).toLocaleDateString()}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                            <button onClick={() => handleDeleteInquiry(inq.id)} className="text-red-600 hover:bg-red-50 p-2 rounded">
+                            <button onClick={() => handleDeleteInquiry(inq.id)} className="text-red-400 hover:bg-red-500/10 p-2 rounded transition-colors">
                                 <Trash2 className="h-4 w-4" />
                             </button>
                         </td>
@@ -381,42 +381,42 @@ const AdminPanelPage: React.FC = () => {
                 </table>
             ) : activeTab === 'projects' ? (
                 // PROJECTS TABLE
-                <table className="min-w-full divide-y divide-slate-200">
-                <thead className="bg-slate-50">
+                <table className="min-w-full divide-y divide-white/10">
+                <thead className="bg-white/5">
                     <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Title</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Budget</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Status</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Date</th>
-                    <th className="px-6 py-3 text-right text-xs font-medium text-slate-500 uppercase tracking-wider">Actions</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider">Title</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider">Budget</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider">Status</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider">Date</th>
+                    <th className="px-6 py-3 text-right text-xs font-medium text-slate-400 uppercase tracking-wider">Actions</th>
                     </tr>
                 </thead>
-                <tbody className="bg-white divide-y divide-slate-200">
+                <tbody className="bg-surface divide-y divide-white/10">
                     {loadingData ? (
                         <tr><td colSpan={5} className="px-6 py-12 text-center text-slate-500">Loading projects...</td></tr>
                     ) : filteredProjects.length > 0 ? (
                     filteredProjects.map((p) => (
-                        <tr key={p.id} className="hover:bg-slate-50">
+                        <tr key={p.id} className="hover:bg-white/5 transition-colors">
                         <td className="px-6 py-4">
                             <div className="flex items-center">
-                                <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-700 font-bold shrink-0">
+                                <div className="h-10 w-10 rounded-full bg-white/10 flex items-center justify-center text-gold font-bold shrink-0 border border-white/10">
                                     <Briefcase className="h-5 w-5" />
                                 </div>
                                 <div className="ml-4">
-                                    <div className="text-sm font-medium text-slate-900">{p.title}</div>
+                                    <div className="text-sm font-medium text-white">{p.title}</div>
                                     <div className="text-sm text-slate-500 line-clamp-1 max-w-xs">{p.description}</div>
                                 </div>
                             </div>
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-500">
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-400">
                             {p.budget}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                             <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                                p.status === 'completed' ? 'bg-green-100 text-green-800' :
-                                p.status === 'in_progress' ? 'bg-blue-100 text-blue-800' :
-                                p.status === 'cancelled' ? 'bg-red-100 text-red-800' :
-                                'bg-amber-100 text-amber-800'
+                                p.status === 'completed' ? 'bg-green-500/20 text-green-400 border border-green-500/30' :
+                                p.status === 'in_progress' ? 'bg-blue-500/20 text-blue-400 border border-blue-500/30' :
+                                p.status === 'cancelled' ? 'bg-red-500/20 text-red-400 border border-red-500/30' :
+                                'bg-amber-500/20 text-amber-400 border border-amber-500/30'
                             }`}>
                                 {p.status.replace('_', ' ')}
                             </span>
@@ -425,7 +425,7 @@ const AdminPanelPage: React.FC = () => {
                             {new Date(p.created_at).toLocaleDateString()}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                            <button onClick={() => handleDeleteProject(p.id)} className="text-red-600 hover:bg-red-50 p-2 rounded">
+                            <button onClick={() => handleDeleteProject(p.id)} className="text-red-400 hover:bg-red-500/10 p-2 rounded transition-colors">
                                 <Trash2 className="h-4 w-4" />
                             </button>
                         </td>
@@ -439,14 +439,14 @@ const AdminPanelPage: React.FC = () => {
             ) : (
                 // SETTINGS TAB
                 <div className="p-8 max-w-2xl">
-                    <h2 className="text-xl font-bold text-slate-900 mb-6 flex items-center gap-2">
-                        <Key className="h-5 w-5 text-indigo-500" />
+                    <h2 className="text-xl font-bold text-white mb-6 flex items-center gap-2 font-display">
+                        <Key className="h-5 w-5 text-gold" />
                         Change Admin Password
                     </h2>
                     
                     <form onSubmit={handlePasswordUpdate} className="space-y-6">
                         {passwordMessage && (
-                            <div className={`p-4 rounded-lg text-sm ${passwordMessage.includes('Error') ? 'bg-red-50 text-red-700' : 'bg-green-50 text-green-700'}`}>
+                            <div className={`p-4 rounded-lg text-sm ${passwordMessage.includes('Error') ? 'bg-red-500/10 text-red-400 border border-red-500/20' : 'bg-green-500/10 text-green-400 border border-green-500/20'}`}>
                                 {passwordMessage}
                             </div>
                         )}
@@ -467,7 +467,7 @@ const AdminPanelPage: React.FC = () => {
                             placeholder="Confirm new password"
                         />
                         
-                        <Button type="submit" disabled={updatingPassword}>
+                        <Button type="submit" disabled={updatingPassword} className="bg-gold hover:bg-gold-dark text-black border-none font-bold">
                             {updatingPassword ? 'Updating...' : 'Update Password'}
                         </Button>
                     </form>
@@ -476,7 +476,7 @@ const AdminPanelPage: React.FC = () => {
           </div>
           
           {activeTab !== 'settings' && (
-            <div className="bg-slate-50 px-6 py-3 border-t border-slate-200 text-sm text-slate-500">
+            <div className="bg-surface px-6 py-3 border-t border-white/10 text-sm text-slate-500">
                 Showing {
                     activeTab === 'users' ? filteredUsers.length : 
                     activeTab === 'inquiries' ? filteredInquiries.length :
