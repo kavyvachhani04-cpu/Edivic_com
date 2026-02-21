@@ -52,6 +52,62 @@ const LandingPage: React.FC = () => {
         <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-3/4 h-1 bg-gradient-to-r from-transparent via-gold to-transparent blur-sm"></div>
       </section>
 
+      {/* Stats Section */}
+      <section className="py-12 bg-black border-b border-white/5">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            {[
+              { label: "Professional Editors", value: "1,000+" },
+              { label: "Happy Clients", value: "500+" },
+              { label: "Projects Completed", value: "10,000+" },
+              { label: "Support Available", value: "24/7" }
+            ].map((stat, i) => (
+              <div key={i} className="bg-white/5 border border-white/10 p-8 rounded-xl text-center hover:border-gold/30 transition-colors">
+                <div className="text-3xl md:text-4xl font-bold text-gold mb-2 font-display">{stat.value}</div>
+                <div className="text-slate-400 font-medium">{stat.label}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Services Section */}
+      <section className="py-24 bg-black relative">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-16">
+            <h2 className="text-3xl md:text-4xl font-bold text-gold mb-4 font-display">Our Services</h2>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {[
+              { 
+                title: "YouTube Video Editing", 
+                desc: "Professional long-form YouTube editing with effects & subtitles." 
+              },
+              { 
+                title: "Instagram Reels Editing", 
+                desc: "High quality viral reels editing for creators & brands." 
+              },
+              { 
+                title: "Corporate Video Editing", 
+                desc: "Business promo, presentations & company videos." 
+              },
+              { 
+                title: "Ads & Commercial Editing", 
+                desc: "Facebook, YouTube & Instagram ad video production." 
+              }
+            ].map((service, i) => (
+              <div key={i} className="bg-white/5 border border-white/10 p-8 rounded-xl hover:bg-white/10 transition-all duration-300 group">
+                <h3 className="text-xl font-bold text-gold mb-4 group-hover:text-white transition-colors">{service.title}</h3>
+                <p className="text-slate-400 text-sm leading-relaxed">
+                  {service.desc}
+                </p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* Features Section */}
       <section className="py-24 bg-surface relative overflow-hidden border-t border-white/5">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
