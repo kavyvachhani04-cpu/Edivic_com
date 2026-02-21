@@ -146,11 +146,12 @@ const EditorSubscriptionPage: React.FC = () => {
               <Button 
                 fullWidth 
                 variant={plan.popular ? 'primary' : 'outline'}
-                disabled={loadingPlan !== null}
+                disabled={loadingPlan !== null || (user?.plan_name === plan.name && user?.subscription_status === 'active')}
                 onClick={() => handleSubscribe(plan.id, plan.name)}
                 className={plan.popular ? 'bg-gradient-to-r from-purple-500 to-indigo-600' : ''}
               >
-                {loadingPlan === plan.id ? 'Processing...' : 'Subscribe Now'}
+                {loadingPlan === plan.id ? 'Processing...' : 
+                 (user?.plan_name === plan.name && user?.subscription_status === 'active') ? 'Current Plan' : 'Subscribe Now'}
               </Button>
             </div>
           ))}

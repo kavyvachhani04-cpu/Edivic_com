@@ -5,7 +5,7 @@ import { supabase } from '../lib/supabase';
 import { EditorLayout } from '../components/EditorLayout';
 import { Button } from '../components/Button';
 import { Input } from '../components/Input';
-import { Save, User, AlignLeft, Wrench } from 'lucide-react';
+import { Save, User, AlignLeft, Wrench, Globe, Monitor, Clock } from 'lucide-react';
 
 const EditorProfilePage: React.FC = () => {
   const { user, loading, refreshUser } = useAuth();
@@ -13,7 +13,10 @@ const EditorProfilePage: React.FC = () => {
   const [formData, setFormData] = useState({
     name: '',
     skills: '',
-    bio: ''
+    bio: '',
+    portfolio_url: '',
+    primary_software: '',
+    years_experience: ''
   });
   const [isSaving, setIsSaving] = useState(false);
   const [message, setMessage] = useState<{type: 'success'|'error', text: string} | null>(null);
@@ -34,7 +37,7 @@ const EditorProfilePage: React.FC = () => {
           // Fetch additional profile fields
           const { data, error } = await supabase
             .from('profiles')
-            .select('name, skills, bio')
+            .select('name, skills, bio, portfolio_url, primary_software, years_experience')
             .eq('id', user.id)
             .single();
           
@@ -42,7 +45,10 @@ const EditorProfilePage: React.FC = () => {
               setFormData({
                   name: data.name || user.name,
                   skills: data.skills || '',
-                  bio: data.bio || ''
+                  bio: data.bio || '',
+                  portfolio_url: data.portfolio_url || '',
+                  primary_software: data.primary_software || '',
+                  years_experience: data.years_experience || ''
               });
           }
       } catch (error) {
@@ -65,13 +71,16 @@ const EditorProfilePage: React.FC = () => {
         });
         if (authError) throw authError;
 
-        // 2. Update Profiles Table (Name, Skills, Bio)
+        // 2. Update Profiles Table
         const { error: dbError } = await supabase
             .from('profiles')
             .update({ 
                 name: formData.name,
                 skills: formData.skills,
-                bio: formData.bio
+                bio: formData.bio,
+                portfolio_url: formData.portfolio_url,
+                primary_software: formData.primary_software,
+                years_experience: formData.years_experience
             })
             .eq('id', user.id);
         
@@ -127,6 +136,49 @@ const EditorProfilePage: React.FC = () => {
                                 className="w-full px-4 py-3 bg-slate-900/50 border border-slate-700 rounded-lg text-slate-500 cursor-not-allowed"
                             />
                         </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                         <div className="space-y-1.5">
+                            <label className="block text-sm font-medium text-slate-300 uppercase tracking-wider text-xs flex items-center gap-2">
+                                <Monitor className="h-3 w-3" /> Primary Software
+                            </label>
+                            <input 
+                                type="text"
+                                className="w-full px-4 py-3 bg-slate-800/50 border border-slate-700 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                                placeholder="e.g. Premiere Pro"
+                                value={formData.primary_software}
+                                onChange={(e) => setFormData({...formData, primary_software: e.target.value})}
+                                disabled={isSaving}
+                            />
+                        </div>
+                        <div className="space-y-1.5">
+                            <label className="block text-sm font-medium text-slate-300 uppercase tracking-wider text-xs flex items-center gap-2">
+                                <Clock className="h-3 w-3" /> Years Experience
+                            </label>
+                            <input 
+                                type="text"
+                                className="w-full px-4 py-3 bg-slate-800/50 border border-slate-700 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                                placeholder="e.g. 5 Years"
+                                value={formData.years_experience}
+                                onChange={(e) => setFormData({...formData, years_experience: e.target.value})}
+                                disabled={isSaving}
+                            />
+                        </div>
+                    </div>
+
+                    <div className="space-y-1.5">
+                        <label className="block text-sm font-medium text-slate-300 uppercase tracking-wider text-xs flex items-center gap-2">
+                            <Globe className="h-3 w-3" /> Portfolio URL
+                        </label>
+                        <input 
+                            type="url"
+                            className="w-full px-4 py-3 bg-slate-800/50 border border-slate-700 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                            placeholder="https://yourportfolio.com"
+                            value={formData.portfolio_url}
+                            onChange={(e) => setFormData({...formData, portfolio_url: e.target.value})}
+                            disabled={isSaving}
+                        />
                     </div>
 
                     <div className="space-y-1.5">

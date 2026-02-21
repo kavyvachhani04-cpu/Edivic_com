@@ -24,10 +24,8 @@ export const SubscriptionGuard: React.FC<{ children: React.ReactNode }> = ({ chi
           navigate('/editor/subscription');
         }
         
-        // If already subscribed and trying to visit subscription page
-        if (isSubscribed && location.pathname === '/editor/subscription') {
-          navigate('/dashboard-editor');
-        }
+        // Allow access to subscription page for upgrades/management
+        // Removed the redirect that blocked subscribed users
       }
     }
   }, [user, loading, navigate, location.pathname]);
