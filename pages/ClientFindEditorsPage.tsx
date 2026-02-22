@@ -43,19 +43,35 @@ const ClientFindEditorsPage: React.FC = () => {
 
   const fetchEditors = async () => {
       setLoadingEditors(true);
+      
+      // Define fake editor (always available for demo)
+      const fakeEditor: EditorProfile = {
+          id: 'fake-editor-1',
+          name: 'Alex Creative (Demo)',
+          skills: 'Premiere Pro, After Effects, Sound Design',
+          bio: 'Award-winning video editor with 5+ years of experience in commercial and documentary editing. This is a demo profile.',
+          avgRating: '4.9',
+          hourly_rate: '$50',
+          is_featured: true,
+          is_active: true,
+          profile_photo: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=774&q=80'
+      };
+
       try {
           const { data: editorsData, error } = await supabase
             .from('profiles')
-            .select('id, name, skills, bio, profile_photo, rating, hourly_rate, is_featured, is_active')
+            .select('id, name, skills, bio, rating, hourly_rate, is_featured, profile_photo')
             .eq('role', 'editor')
             .order('created_at', { ascending: false });
           
-          if (error) throw error;
+          if (error) {
+              console.error('Supabase error fetching editors:', error);
+              // Don't throw, just log
+          }
 
-          // Filter locally for is_active to be safe if DB column is missing or null
-          const activeEditors = (editorsData || []).filter(e => e.is_active !== false);
+          const fetchedEditors = editorsData || [];
 
-          const editorsWithRatings = await Promise.all(activeEditors.map(async (editor) => {
+          const editorsWithRatings = await Promise.all(fetchedEditors.map(async (editor) => {
               let avgRating = editor.rating || 0;
               
               try {
@@ -76,19 +92,6 @@ const ClientFindEditorsPage: React.FC = () => {
 
               return { ...editor, avgRating: Number(avgRating).toFixed(1) };
           }));
-
-          // Add fake editor for demo
-          const fakeEditor: EditorProfile = {
-              id: 'fake-editor-1',
-              name: 'Alex Creative (Demo)',
-              skills: 'Premiere Pro, After Effects, Sound Design',
-              bio: 'Award-winning video editor with 5+ years of experience in commercial and documentary editing. This is a demo profile.',
-              avgRating: '4.9',
-              hourly_rate: '$50',
-              is_featured: true,
-              is_active: true,
-              profile_photo: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=774&q=80'
-          };
           
           // Sort: Featured first
           const sortedEditors = [fakeEditor, ...editorsWithRatings].sort((a, b) => {
@@ -100,6 +103,7 @@ const ClientFindEditorsPage: React.FC = () => {
           setEditors(sortedEditors);
       } catch (e) {
           console.error('Error fetching editors:', e);
+          setEditors([fakeEditor]);
       } finally {
           setLoadingEditors(false);
       }

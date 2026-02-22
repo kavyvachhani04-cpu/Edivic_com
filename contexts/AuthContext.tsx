@@ -47,7 +47,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     // Timeout wrapper for profile fetch
     const fetchProfileWithTimeout = async () => {
-      const timeout = new Promise((_, reject) => setTimeout(() => reject(new Error('Profile fetch timeout')), 5000));
+      const timeout = new Promise((_, reject) => setTimeout(() => reject(new Error('Profile fetch timeout')), 10000));
       const fetch = fetchExtendedProfile(sbUser.id);
       return Promise.race([fetch, timeout]);
     };
@@ -55,8 +55,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     let profile: any = null;
     try {
       profile = await fetchProfileWithTimeout();
-    } catch (error) {
-      console.warn('Profile fetch failed or timed out:', error);
+    } catch (error: any) {
+      console.warn('Profile fetch warning:', error.message || error);
       // Fallback: proceed without extended profile data
     }
 
@@ -81,8 +81,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       // Add timeout to getSession as well
       const getSessionWithTimeout = async () => {
-         // Reduced timeout to 2s for faster fallback
-         const timeout = new Promise((_, reject) => setTimeout(() => reject(new Error('Session fetch timeout')), 2000));
+         // Increased timeout to 5s for slower connections
+         const timeout = new Promise((_, reject) => setTimeout(() => reject(new Error('Session fetch timeout')), 5000));
          const fetch = supabase.auth.getSession();
          return Promise.race([fetch, timeout]);
       };

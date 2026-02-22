@@ -12,7 +12,8 @@ import {
   Menu, 
   Bell,
   Rocket,
-  Settings
+  Settings,
+  Search
 } from 'lucide-react';
 
 interface ClientLayoutProps {
@@ -35,6 +36,7 @@ export const ClientLayout: React.FC<ClientLayoutProps> = ({ children, title, sub
 
   const navItems = [
     { icon: <LayoutDashboard className="h-5 w-5" />, label: 'Overview', path: '/dashboard-client' },
+    { icon: <Search className="h-5 w-5" />, label: 'Find Editors', path: '/client/find-editors' },
     { icon: <PlusCircle className="h-5 w-5" />, label: 'Post Project', path: '/client/post-project' },
     { icon: <Briefcase className="h-5 w-5" />, label: 'My Projects', path: '/client/my-projects' },
     { icon: <CheckCircle className="h-5 w-5" />, label: 'Completed', path: '/client/completed-projects' },

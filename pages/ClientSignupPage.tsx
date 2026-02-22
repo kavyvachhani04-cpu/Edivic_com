@@ -49,7 +49,8 @@ const ClientSignupPage: React.FC = () => {
                 name: name, 
                 email: email, 
                 role: 'client', 
-                created_at: new Date().toISOString()
+                created_at: new Date().toISOString(),
+                is_active: true
                 }]);
 
             if (profileError) console.warn('Profile creation warning:', profileError.message);
