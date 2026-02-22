@@ -73,10 +73,14 @@ const ClientDashboard: React.FC = () => {
             .from('profiles')
             .select('id, name, skills, bio, profile_photo, rating, hourly_rate, is_featured')
             .eq('role', 'editor')
-            .order('is_featured', { ascending: false })
-            .order('created_at', { ascending: false });
+            .order('is_featured', { ascending: false });
           
-          if (error) throw error;
+          if (error) {
+              console.error('Supabase error fetching editors:', error);
+              throw error;
+          }
+
+          console.log('Fetched editors raw data:', editorsData);
 
           // Fetch ratings for these editors (if we want to calculate dynamically, or rely on stored rating)
           // For now, let's use the stored rating if available, or calculate it.
