@@ -21,6 +21,8 @@ interface EditorProfile {
     portfolio_url?: string;
     primary_software?: string;
     years_experience?: string;
+    is_featured?: boolean;
+    is_active?: boolean;
 }
 
 const ViewEditorProfilePage: React.FC = () => {
@@ -30,13 +32,18 @@ const ViewEditorProfilePage: React.FC = () => {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
+        console.log('ViewEditorProfilePage mounted, id:', id);
         if (id) {
             fetchEditorProfile();
+        } else {
+            console.warn('No ID provided in URL');
+            setLoading(false);
         }
     }, [id]);
 
     const fetchEditorProfile = async () => {
         setLoading(true);
+        console.log(`Fetching profile for editor ID: ${id}`);
         try {
             const { data, error } = await supabase
                 .from('profiles')
@@ -44,10 +51,15 @@ const ViewEditorProfilePage: React.FC = () => {
                 .eq('id', id)
                 .single();
             
-            if (error) throw error;
+            if (error) {
+                console.error('Supabase error fetching editor profile:', error);
+                throw error;
+            }
+            
+            console.log('Fetched editor profile data:', data);
             setEditor(data);
         } catch (e) {
-            console.error('Error fetching editor profile:', e);
+            console.error('Unexpected error fetching editor profile:', e);
             setEditor(null);
         } finally {
             setLoading(false);
@@ -83,10 +95,11 @@ const ViewEditorProfilePage: React.FC = () => {
         { id: 2, client: 'Mike T.', rating: 5, text: 'Great communication and understood the vision perfectly.', date: '1 week ago' },
     ];
 
-    const editorName = editor.full_name || editor.name;
-    const editorPhoto = editor.profile_image_url || editor.profile_photo;
-    const editorRate = editor.price_per_hour ? `$${editor.price_per_hour}` : editor.hourly_rate;
-    const skillsArr = Array.isArray(editor.skills) ? editor.skills : (editor.skills?.split(',') || []);
+    const editorName = String(editor.full_name || editor.name || 'Anonymous Editor');
+    const editorPhoto = editor.profile_image_url || editor.profile_photo || '';
+    const editorRate = editor.price_per_hour ? `$${editor.price_per_hour}` : (editor.hourly_rate || '$0');
+    const skillsArr = Array.isArray(editor.skills) ? editor.skills : (typeof editor.skills === 'string' ? editor.skills.split(',') : []);
+    const ratingValue = Number(editor.rating || 5.0).toFixed(1);
 
     return (
         <ClientLayout title="Editor Profile" subtitle={`View details for ${editorName}`}>
@@ -102,7 +115,7 @@ const ViewEditorProfilePage: React.FC = () => {
                                 <img src={editorPhoto} alt={editorName} className="h-48 w-48 rounded-3xl object-cover border-2 border-gold/30 shadow-2xl mb-6" />
                             ) : (
                                 <div className="h-48 w-48 rounded-3xl bg-white/5 flex items-center justify-center border-2 border-gold/30 text-gold font-bold text-6xl shadow-2xl mb-6">
-                                    {editorName.charAt(0).toUpperCase()}
+                                    {editorName.charAt(0).toUpperCase() || '?'}
                                 </div>
                             )}
                             
@@ -110,7 +123,7 @@ const ViewEditorProfilePage: React.FC = () => {
                                 <div className="glass p-3 rounded-2xl border border-white/5 text-center">
                                     <div className="flex items-center justify-center text-gold mb-1">
                                         <Star className="h-4 w-4 fill-gold" />
-                                        <span className="text-lg font-bold ml-1 text-white">{Number(editor.rating || 5.0).toFixed(1)}</span>
+                                        <span className="text-lg font-bold ml-1 text-white">{ratingValue}</span>
                                     </div>
                                     <p className="text-[10px] text-slate-500 uppercase tracking-widest">Rating</p>
                                 </div>
@@ -179,7 +192,7 @@ const ViewEditorProfilePage: React.FC = () => {
                                     <div className="flex flex-wrap gap-2">
                                         {skillsArr.map((skill, idx) => (
                                             <span key={idx} className="px-3 py-1.5 bg-white/5 border border-white/10 rounded-lg text-xs text-slate-300 font-medium hover:bg-white/10 transition-colors cursor-default">
-                                                {skill.trim()}
+                                                {String(skill).trim()}
                                             </span>
                                         ))}
                                     </div>
@@ -193,7 +206,7 @@ const ViewEditorProfilePage: React.FC = () => {
                                     onClick={() => navigate(`/client/post-project?hireName=${encodeURIComponent(editorName)}&hireId=${editor.id}`)}
                                 >
                                     <Zap className="h-5 w-5 mr-2" />
-                                    Hire {editorName.split(' ')[0]}
+                                    Hire {editorName.split(' ')[0] || 'Editor'}
                                 </Button>
                                 <Button 
                                     variant="outline" 
