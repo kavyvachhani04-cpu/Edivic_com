@@ -191,8 +191,8 @@ const AdminPanelPage: React.FC = () => {
   );
 
   const filteredProjects = projects.filter(p => 
-    (p.project_title || p.title || '').toLowerCase().includes(searchTerm.toLowerCase()) || 
-    (p.project_description || p.description || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (p.title || '').toLowerCase().includes(searchTerm.toLowerCase()) || 
+    (p.description || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
     (p.status || '').toLowerCase().includes(searchTerm.toLowerCase())
   );
 
@@ -398,7 +398,6 @@ const AdminPanelPage: React.FC = () => {
                 <thead className="bg-white/5">
                     <tr>
                     <th className="px-6 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider">Title</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider">Client</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider">Budget</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider">Status</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider">Date</th>
@@ -417,13 +416,10 @@ const AdminPanelPage: React.FC = () => {
                                     <Briefcase className="h-5 w-5" />
                                 </div>
                                 <div className="ml-4">
-                                    <div className="text-sm font-medium text-white">{p.project_title || p.title}</div>
-                                    <div className="text-sm text-slate-500 line-clamp-1 max-w-xs">{p.project_description || p.description}</div>
+                                    <div className="text-sm font-medium text-white">{p.title}</div>
+                                    <div className="text-sm text-slate-500 line-clamp-1 max-w-xs">{p.description}</div>
                                 </div>
                             </div>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-400">
-                            {p.client_name || 'Unknown'}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-400">
                             {p.budget}

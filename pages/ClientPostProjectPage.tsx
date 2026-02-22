@@ -53,13 +53,13 @@ const ClientPostProjectPage: React.FC = () => {
       const { error } = await supabase.from('projects').insert([
         {
           client_id: user.id,
-          client_name: user.name, // Include client name
-          project_title: formData.title, // Match schema field name
-          project_description: descriptionWithRef, // Match schema field name
+          // client_name: user.name, // Removed to fix schema error
+          title: formData.title, // Reverted to title
+          description: descriptionWithRef, // Reverted to description
           budget: formData.budget,
           deadline: formData.deadline,
-          category: formData.category,
-          status: 'open' // Set to 'open' for visibility
+          // category: formData.category, // Removed to fix schema error
+          status: 'pending' // Reverted to pending
         }
       ]);
       
