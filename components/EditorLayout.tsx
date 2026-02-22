@@ -15,7 +15,8 @@ import {
   X,
   Bell,
   ShieldCheck,
-  CreditCard
+  CreditCard,
+  Settings
 } from 'lucide-react';
 
 interface EditorLayoutProps {
@@ -29,6 +30,7 @@ export const EditorLayout: React.FC<EditorLayoutProps> = ({ children, title, sub
   const navigate = useNavigate();
   const location = useLocation();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
@@ -151,7 +153,53 @@ export const EditorLayout: React.FC<EditorLayoutProps> = ({ children, title, sub
                         <Bell className="h-5 w-5" />
                     </button>
                     <div className="hidden md:block h-8 w-px bg-white/10" />
-                    <span className="hidden md:inline text-sm text-slate-500">{new Date().toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' })}</span>
+                    
+                    <div className="relative">
+                      <button 
+                        onClick={() => setIsProfileOpen(!isProfileOpen)}
+                        className="flex items-center gap-3 focus:outline-none group"
+                      >
+                         <div className="text-right hidden md:block">
+                           <p className="text-sm font-medium text-white group-hover:text-purple-400 transition-colors">{user?.name}</p>
+                           <p className="text-xs text-slate-400">Editor</p>
+                         </div>
+                         <div className="h-10 w-10 rounded-full bg-gradient-to-br from-purple-500 to-indigo-600 flex items-center justify-center text-white font-bold text-sm shadow-lg group-hover:shadow-purple-500/30 transition-all border border-white/10">
+                           {user?.name.charAt(0).toUpperCase()}
+                         </div>
+                      </button>
+
+                      {isProfileOpen && (
+                        <div className="absolute right-0 mt-2 w-56 bg-surface border border-white/10 rounded-xl shadow-2xl py-2 z-50 animate-in fade-in slide-in-from-top-2">
+                           <div className="px-4 py-3 border-b border-white/10 mb-2">
+                             <p className="text-sm font-bold text-white">{user?.name}</p>
+                             <p className="text-xs text-slate-400 truncate">{user?.email}</p>
+                           </div>
+
+                           <Link 
+                             to="/editor/profile"
+                             className="block px-4 py-2 text-sm text-slate-300 hover:bg-white/5 hover:text-purple-400"
+                             onClick={() => setIsProfileOpen(false)}
+                           >
+                             <div className="flex items-center gap-2">
+                               <Settings className="h-4 w-4" />
+                               <span>Profile Settings</span>
+                             </div>
+                           </Link>
+                           
+                           <div className="border-t border-white/10 my-2"></div>
+                           
+                           <button
+                             onClick={handleLogout}
+                             className="w-full text-left px-4 py-2 text-sm text-slate-300 hover:bg-white/5 hover:text-red-400 transition-colors"
+                           >
+                              <div className="flex items-center gap-2">
+                               <LogOut className="h-4 w-4" />
+                               <span>Sign Out</span>
+                             </div>
+                           </button>
+                        </div>
+                      )}
+                    </div>
                 </div>
               </div>
 

@@ -7,6 +7,7 @@ import { Button } from './Button';
 
 export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
   const { user, loading } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
@@ -64,14 +65,58 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
               {loading ? (
                 <div className="h-10 w-24 bg-slate-800 animate-pulse rounded"></div>
               ) : user ? (
-                <div className="flex items-center gap-4">
-                   <div className="text-right hidden lg:block">
-                     <p className="text-sm font-medium text-white">{user.name}</p>
-                     <p className="text-xs text-gold uppercase tracking-wider">{user.role}</p>
-                   </div>
-                   <Link to={getDashboardLink()}>
-                    <Button variant="primary" size="sm" className="bg-gold hover:bg-gold-dark text-black border-none font-bold">Dashboard</Button>
-                  </Link>
+                <div className="relative">
+                  <button 
+                    onClick={() => setIsProfileOpen(!isProfileOpen)}
+                    className="flex items-center gap-3 focus:outline-none group"
+                  >
+                    <div className="text-right hidden lg:block">
+                      <p className="text-sm font-medium text-white group-hover:text-gold transition-colors">{user.name}</p>
+                      <p className="text-xs text-gold uppercase tracking-wider">{user.role}</p>
+                    </div>
+                    <div className="h-10 w-10 rounded-full bg-white/10 border border-gold/50 flex items-center justify-center text-gold font-bold shadow-[0_0_10px_rgba(212,175,55,0.2)] group-hover:shadow-[0_0_15px_rgba(212,175,55,0.4)] transition-all">
+                      {user.name.charAt(0).toUpperCase()}
+                    </div>
+                  </button>
+
+                  {isProfileOpen && (
+                    <div className="absolute right-0 mt-2 w-56 bg-surface border border-white/10 rounded-xl shadow-2xl py-2 z-50 animate-in fade-in slide-in-from-top-2">
+                      <div className="px-4 py-3 border-b border-white/10 mb-2">
+                        <p className="text-sm font-bold text-white">{user.name}</p>
+                        <p className="text-xs text-slate-400 truncate">{user.email}</p>
+                      </div>
+                      
+                      <Link to={getDashboardLink()} onClick={() => setIsProfileOpen(false)}>
+                        <div className="px-4 py-2 text-sm text-slate-300 hover:bg-white/5 hover:text-gold flex items-center gap-2 cursor-pointer">
+                          <LayoutDashboard className="h-4 w-4" />
+                          <span>Dashboard</span>
+                        </div>
+                      </Link>
+
+                      <Link 
+                        to={user.role === 'client' ? '/client/profile' : user.role === 'editor' ? '/editor/profile' : '/admin/dashboard'}
+                        className="block px-4 py-2 text-sm text-slate-300 hover:bg-white/5 hover:text-gold"
+                        onClick={() => setIsProfileOpen(false)}
+                      >
+                        <div className="flex items-center gap-2">
+                          <Settings className="h-4 w-4" />
+                          <span>Profile Settings</span>
+                        </div>
+                      </Link>
+                      
+                      <div className="border-t border-white/10 my-2"></div>
+                      
+                      <button
+                        onClick={handleLogout}
+                        className="w-full text-left px-4 py-2 text-sm text-slate-300 hover:bg-white/5 hover:text-red-400 transition-colors"
+                      >
+                         <div className="flex items-center gap-2">
+                          <LogOut className="h-4 w-4" />
+                          <span>Sign Out</span>
+                        </div>
+                      </button>
+                    </div>
+                  )}
                 </div>
               ) : (
                 <div className="flex items-center gap-6">
