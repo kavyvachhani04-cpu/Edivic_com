@@ -75,7 +75,7 @@ const App: React.FC = () => {
             <Route path="/signup-editor" element={<EditorSignupPage />} />
             
             {/* Protected Editor Routes */}
-            <Route path="/editor/subscription" element={<RoleGuard allowedRoles={['editor']}><SubscriptionGuard><EditorSubscriptionPage /></SubscriptionGuard></RoleGuard>} />
+            <Route path="/editor/subscription" element={<EditorSubscriptionPage />} />
             <Route path="/dashboard-editor" element={<RoleGuard allowedRoles={['editor']}><SubscriptionGuard><EditorDashboard /></SubscriptionGuard></RoleGuard>} />
             <Route path="/editor/find-projects" element={<RoleGuard allowedRoles={['editor']}><SubscriptionGuard><EditorFindProjectsPage /></SubscriptionGuard></RoleGuard>} />
             <Route path="/editor/my-projects" element={<RoleGuard allowedRoles={['editor']}><SubscriptionGuard><EditorMyProjectsPage /></SubscriptionGuard></RoleGuard>} />

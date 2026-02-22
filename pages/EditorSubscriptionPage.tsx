@@ -52,18 +52,31 @@ const PLANS = [
 ];
 
 const EditorSubscriptionPage: React.FC = () => {
-  const { user, refreshUser, updateUser } = useAuth();
+  const { user, refreshUser, updateUser, loading } = useAuth();
   const navigate = useNavigate();
   const [loadingPlan, setLoadingPlan] = useState<string | null>(null);
 
+  // Redirect if user is logged in but not an editor
+  React.useEffect(() => {
+    if (!loading && user && user.role !== 'editor' && user.role !== 'admin') {
+      navigate('/dashboard-client');
+    }
+  }, [user, loading, navigate]);
+
   const handleSubscribe = async (planId: string, planName: string) => {
-    if (!user) return;
+    // 1. Check if user is logged in
+    if (!user) {
+      navigate('/login-editor');
+      return;
+    }
+
     setLoadingPlan(planId);
 
     try {
       const expiryDate = new Date();
       expiryDate.setDate(expiryDate.getDate() + 30); // 30 days expiry
 
+      // 2. Update subscription in database
       const { error } = await supabase
         .from('profiles')
         .update({
@@ -75,16 +88,14 @@ const EditorSubscriptionPage: React.FC = () => {
 
       if (error) throw error;
 
-      // Optimistically update local state to pass the guard immediately
+      // 3. Update local state
       updateUser({
         subscription_status: 'active',
         plan_name: planName,
         subscription_expiry: expiryDate.toISOString()
       });
 
-      // Background refresh (optional, but good for consistency)
-      refreshUser();
-      
+      // 4. Redirect to dashboard
       navigate('/dashboard-editor');
     } catch (err) {
       console.error('Subscription error:', err);
