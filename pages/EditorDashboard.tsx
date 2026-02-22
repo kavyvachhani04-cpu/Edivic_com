@@ -4,6 +4,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
 import { EditorLayout } from '../components/EditorLayout';
 import { LoadingScreen } from '../components/LoadingScreen';
+import { Button } from '../components/Button';
 import { Briefcase, CheckCircle, Search, Clock, ArrowUpRight, MessageSquare, Star, User as UserIcon } from 'lucide-react';
 
 const EditorDashboard: React.FC = () => {
