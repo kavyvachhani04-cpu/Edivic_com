@@ -34,4 +34,8 @@ BEGIN
     IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'profiles' AND column_name = 'is_featured') THEN
         ALTER TABLE profiles ADD COLUMN is_featured BOOLEAN DEFAULT false;
     END IF;
+
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'profiles' AND column_name = 'role') THEN
+        ALTER TABLE profiles ADD COLUMN role TEXT CHECK (role IN ('client', 'editor', 'admin'));
+    END IF;
 END $$;
