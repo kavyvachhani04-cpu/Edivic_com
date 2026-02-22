@@ -45,6 +45,7 @@ const EditorSignupPage: React.FC = () => {
             .insert([{ 
                 id: data.user.id, 
                 role: 'editor',
+                name: name,
                 full_name: name,
                 email: email, 
                 bio: '',
