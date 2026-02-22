@@ -32,7 +32,7 @@ const EditorSignupPage: React.FC = () => {
       if (authError) throw authError;
 
       if (data.user) {
-        // Check if profile exists first
+        // Check if profile exists first to avoid duplicate key error
         const { data: existingProfile } = await supabase
             .from('profiles')
             .select('id')
@@ -51,13 +51,19 @@ const EditorSignupPage: React.FC = () => {
                 rating: 0,
                 is_featured: false,
                 is_active: true,
-                skills: 'Video Editing, Color Grading', // Default skills
-                bio: 'Professional video editor ready to work on your projects.', // Default bio
-                experience: '1 Year', // Default experience
-                hourly_rate: '$30' // Default rate
+                skills: 'Video Editing, Color Grading', 
+                bio: 'Professional video editor ready to work on your projects.', 
+                experience: '1 Year', 
+                hourly_rate: '$30' 
                 }]);
 
-            if (profileError) console.warn('Profile creation warning:', profileError.message);
+            if (profileError) {
+                console.error('CRITICAL: Profile creation failed for editor:', profileError.message);
+                // We don't throw here to allow the user to still see the "check email" message
+                // but we log it as requested.
+            } else {
+                console.log('Profile successfully created for editor:', data.user.id);
+            }
         }
       }
 

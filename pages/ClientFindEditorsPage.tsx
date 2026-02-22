@@ -226,7 +226,7 @@ const ClientFindEditorsPage: React.FC = () => {
                                 Hire Now
                             </Button>
                             <button 
-                                onClick={() => alert('Chat feature coming soon!')}
+                                onClick={() => navigate('/client/chat')}
                                 className="px-4 py-2 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 text-white transition-colors flex items-center justify-center"
                                 title="Chat with Editor"
                             >

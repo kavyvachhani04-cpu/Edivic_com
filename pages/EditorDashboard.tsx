@@ -193,7 +193,7 @@ const EditorDashboard: React.FC = () => {
                                     </div>
                                     <div className="flex gap-2">
                                         <button 
-                                            onClick={() => alert('Chat feature coming soon!')}
+                                            onClick={() => navigate('/editor/chat')}
                                             className="px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 hover:bg-white/10 text-white transition-colors flex items-center text-xs font-bold"
                                             title="Chat with Client"
                                         >

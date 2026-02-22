@@ -19,8 +19,7 @@ const ClientPostProjectPage: React.FC = () => {
       deadline: '',
       reference: '',
       category: 'Video Editing',
-      skills: '',
-      experience_level: 'Intermediate'
+      skills: ''
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const hireName = searchParams.get('hireName');
@@ -61,7 +60,6 @@ const ClientPostProjectPage: React.FC = () => {
           deadline: formData.deadline,
           category: formData.category,
           skills: formData.skills,
-          experience_level: formData.experience_level,
           status: 'pending'
       };
 
@@ -133,7 +131,7 @@ const ClientPostProjectPage: React.FC = () => {
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div>
+                        <div className="md:col-span-2">
                             <label className="block text-sm font-medium text-slate-300 mb-1.5 uppercase tracking-wider text-xs">Category</label>
                             <select
                                 className="w-full px-4 py-3 bg-slate-800/50 border border-slate-700 rounded-lg text-white focus:ring-2 focus:ring-primary-500 focus:outline-none"
@@ -146,18 +144,6 @@ const ClientPostProjectPage: React.FC = () => {
                                 <option value="Color Grading">Color Grading</option>
                                 <option value="Sound Design">Sound Design</option>
                                 <option value="Other">Other</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label className="block text-sm font-medium text-slate-300 mb-1.5 uppercase tracking-wider text-xs">Experience Level</label>
-                            <select
-                                className="w-full px-4 py-3 bg-slate-800/50 border border-slate-700 rounded-lg text-white focus:ring-2 focus:ring-primary-500 focus:outline-none"
-                                value={formData.experience_level}
-                                onChange={e => setFormData({...formData, experience_level: e.target.value})}
-                            >
-                                <option value="Beginner">Beginner</option>
-                                <option value="Intermediate">Intermediate</option>
-                                <option value="Expert">Expert</option>
                             </select>
                         </div>
                     </div>

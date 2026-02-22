@@ -15,7 +15,6 @@ const EditorFindProjectsPage: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [sortOption, setSortOption] = useState<'newest' | 'budget_high' | 'deadline'>('newest');
   const [filterSkills, setFilterSkills] = useState('');
-  const [filterExperience, setFilterExperience] = useState('All');
   const [isLoadingData, setIsLoadingData] = useState(true);
 
   useEffect(() => {
@@ -85,10 +84,9 @@ const EditorFindProjectsPage: React.FC = () => {
     .filter(p => {
         const matchesSearch = p.title.toLowerCase().includes(searchTerm.toLowerCase()) || 
                               p.description.toLowerCase().includes(searchTerm.toLowerCase());
-        const matchesExperience = filterExperience === 'All' || p.experience_level === filterExperience;
         const matchesSkills = filterSkills === '' || (p.skills && p.skills.toLowerCase().includes(filterSkills.toLowerCase()));
         
-        return matchesSearch && matchesExperience && matchesSkills;
+        return matchesSearch && matchesSkills;
     })
     .sort((a, b) => {
         if (sortOption === 'budget_high') {
@@ -143,19 +141,6 @@ const EditorFindProjectsPage: React.FC = () => {
                         className="w-full px-4 py-2 bg-slate-900 border border-slate-700 rounded-lg text-sm text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
                     />
                 </div>
-                <div className="min-w-[200px]">
-                    <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Experience Level</label>
-                    <select 
-                        value={filterExperience}
-                        onChange={(e) => setFilterExperience(e.target.value)}
-                        className="w-full px-4 py-2 bg-slate-900 border border-slate-700 rounded-lg text-sm text-white focus:outline-none focus:ring-2 focus:ring-purple-500 appearance-none cursor-pointer"
-                    >
-                        <option value="All">All Levels</option>
-                        <option value="Beginner">Beginner</option>
-                        <option value="Intermediate">Intermediate</option>
-                        <option value="Expert">Expert</option>
-                    </select>
-                </div>
             </div>
         </div>
 
@@ -190,11 +175,6 @@ const EditorFindProjectsPage: React.FC = () => {
                         </div>
                         
                         <div className="flex flex-wrap gap-2 mb-4">
-                            {project.experience_level && (
-                                <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-slate-700 text-slate-300 border border-slate-600">
-                                    {project.experience_level}
-                                </span>
-                            )}
                             {project.skills && project.skills.split(',').slice(0, 3).map((skill, i) => (
                                 <span key={i} className="px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-purple-500/10 text-purple-300 border border-purple-500/20">
                                     {skill.trim()}

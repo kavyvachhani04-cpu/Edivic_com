@@ -123,7 +123,7 @@ const ClientDashboard: React.FC = () => {
                 </div>
                 <h3 className="text-xl font-bold text-white mb-2">Messages</h3>
                 <p className="text-slate-400 mb-6 max-w-sm">Chat with editors, discuss project details, and share files securely.</p>
-                <Button variant="outline" onClick={() => alert('Chat feature coming soon!')}>Go to Inbox</Button>
+                <Button variant="outline" onClick={() => navigate('/client/chat')}>Go to Inbox</Button>
             </div>
         </div>
 

@@ -34,7 +34,7 @@ const ClientSignupPage: React.FC = () => {
 
       // 2. Profile creation
       if (data.user) {
-        // Check if profile exists first to avoid duplicate key error if user exists but session was null
+        // Check if profile exists first to avoid duplicate key error
         const { data: existingProfile } = await supabase
             .from('profiles')
             .select('id')
@@ -53,7 +53,11 @@ const ClientSignupPage: React.FC = () => {
                 is_active: true
                 }]);
 
-            if (profileError) console.warn('Profile creation warning:', profileError.message);
+            if (profileError) {
+                console.error('CRITICAL: Profile creation failed for client:', profileError.message);
+            } else {
+                console.log('Profile successfully created for client:', data.user.id);
+            }
         }
       }
 
