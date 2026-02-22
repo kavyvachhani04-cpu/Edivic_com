@@ -17,8 +17,7 @@ const ClientPostProjectPage: React.FC = () => {
       description: '', 
       budget: '', 
       deadline: '',
-      reference: '',
-      category: 'Video Editing' // Default category
+      reference: ''
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const hireName = searchParams.get('hire');
@@ -114,22 +113,6 @@ const ClientPostProjectPage: React.FC = () => {
                             onChange={e => setFormData({...formData, deadline: e.target.value})} 
                             required 
                         />
-                    </div>
-
-                    <div>
-                        <label className="block text-sm font-medium text-slate-300 mb-1.5 uppercase tracking-wider text-xs">Category</label>
-                        <select
-                            className="w-full px-4 py-3 bg-slate-800/50 border border-slate-700 rounded-lg text-white focus:ring-2 focus:ring-primary-500 focus:outline-none"
-                            value={formData.category}
-                            onChange={e => setFormData({...formData, category: e.target.value})}
-                        >
-                            <option value="Video Editing">Video Editing</option>
-                            <option value="Animation">Animation</option>
-                            <option value="Motion Graphics">Motion Graphics</option>
-                            <option value="Color Grading">Color Grading</option>
-                            <option value="Sound Design">Sound Design</option>
-                            <option value="Other">Other</option>
-                        </select>
                     </div>
 
                     <div>
