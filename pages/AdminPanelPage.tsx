@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
-import { Trash2, Shield, LogOut, Search, AlertCircle, Users, MessageSquare, Mail, Settings, Key, Briefcase } from 'lucide-react';
+import { Trash2, Shield, LogOut, Search, AlertCircle, Users, MessageSquare, Mail, Settings, Key, Briefcase, CheckCircle } from 'lucide-react';
 import { Button } from '../components/Button';
 import { Input } from '../components/Input';
 
@@ -139,6 +139,19 @@ const AdminPanelPage: React.FC = () => {
     }
   }
 
+  const handleApproveProject = async (id: string) => {
+    try {
+        const { error } = await supabase
+            .from('projects')
+            .update({ status: 'open' })
+            .eq('id', id);
+        if (error) throw error;
+        fetchData();
+    } catch (error: any) {
+        alert('Error: ' + error.message);
+    }
+  };
+
   const handlePasswordUpdate = async (e: React.FormEvent) => {
     e.preventDefault();
     if (newPassword !== confirmPassword) {
@@ -178,8 +191,8 @@ const AdminPanelPage: React.FC = () => {
   );
 
   const filteredProjects = projects.filter(p => 
-    (p.title || '').toLowerCase().includes(searchTerm.toLowerCase()) || 
-    (p.description || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (p.project_title || p.title || '').toLowerCase().includes(searchTerm.toLowerCase()) || 
+    (p.project_description || p.description || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
     (p.status || '').toLowerCase().includes(searchTerm.toLowerCase())
   );
 
@@ -385,6 +398,7 @@ const AdminPanelPage: React.FC = () => {
                 <thead className="bg-white/5">
                     <tr>
                     <th className="px-6 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider">Title</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider">Client</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider">Budget</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider">Status</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider">Date</th>
@@ -393,7 +407,7 @@ const AdminPanelPage: React.FC = () => {
                 </thead>
                 <tbody className="bg-surface divide-y divide-white/10">
                     {loadingData ? (
-                        <tr><td colSpan={5} className="px-6 py-12 text-center text-slate-500">Loading projects...</td></tr>
+                        <tr><td colSpan={6} className="px-6 py-12 text-center text-slate-500">Loading projects...</td></tr>
                     ) : filteredProjects.length > 0 ? (
                     filteredProjects.map((p) => (
                         <tr key={p.id} className="hover:bg-white/5 transition-colors">
@@ -403,10 +417,13 @@ const AdminPanelPage: React.FC = () => {
                                     <Briefcase className="h-5 w-5" />
                                 </div>
                                 <div className="ml-4">
-                                    <div className="text-sm font-medium text-white">{p.title}</div>
-                                    <div className="text-sm text-slate-500 line-clamp-1 max-w-xs">{p.description}</div>
+                                    <div className="text-sm font-medium text-white">{p.project_title || p.title}</div>
+                                    <div className="text-sm text-slate-500 line-clamp-1 max-w-xs">{p.project_description || p.description}</div>
                                 </div>
                             </div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-400">
+                            {p.client_name || 'Unknown'}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-400">
                             {p.budget}
@@ -414,7 +431,7 @@ const AdminPanelPage: React.FC = () => {
                         <td className="px-6 py-4 whitespace-nowrap">
                             <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
                                 p.status === 'completed' ? 'bg-green-500/20 text-green-400 border border-green-500/30' :
-                                p.status === 'in_progress' ? 'bg-blue-500/20 text-blue-400 border border-blue-500/30' :
+                                p.status === 'assigned' || p.status === 'in_progress' ? 'bg-blue-500/20 text-blue-400 border border-blue-500/30' :
                                 p.status === 'cancelled' ? 'bg-red-500/20 text-red-400 border border-red-500/30' :
                                 'bg-amber-500/20 text-amber-400 border border-amber-500/30'
                             }`}>
@@ -425,14 +442,21 @@ const AdminPanelPage: React.FC = () => {
                             {new Date(p.created_at).toLocaleDateString()}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                            <button onClick={() => handleDeleteProject(p.id)} className="text-red-400 hover:bg-red-500/10 p-2 rounded transition-colors">
-                                <Trash2 className="h-4 w-4" />
-                            </button>
+                            <div className="flex justify-end gap-2">
+                                {p.status === 'pending' && (
+                                    <button onClick={() => handleApproveProject(p.id)} className="text-green-400 hover:bg-green-500/10 p-2 rounded transition-colors" title="Approve">
+                                        <CheckCircle className="h-4 w-4" />
+                                    </button>
+                                )}
+                                <button onClick={() => handleDeleteProject(p.id)} className="text-red-400 hover:bg-red-500/10 p-2 rounded transition-colors" title="Delete">
+                                    <Trash2 className="h-4 w-4" />
+                                </button>
+                            </div>
                         </td>
                         </tr>
                     ))
                     ) : (
-                        <tr><td colSpan={5} className="px-6 py-12 text-center text-slate-500">No projects found.</td></tr>
+                        <tr><td colSpan={6} className="px-6 py-12 text-center text-slate-500">No projects found.</td></tr>
                     )}
                 </tbody>
                 </table>

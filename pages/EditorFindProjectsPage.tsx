@@ -36,27 +36,23 @@ const EditorFindProjectsPage: React.FC = () => {
         const { data: projectData, error } = await supabase
             .from('projects')
             .select('*')
-            .eq('status', 'pending')
+            .eq('status', 'open') // Changed from 'pending' to 'open'
             .order('created_at', { ascending: false });
         
         if (error) throw error;
         
-        const fetchedProjects = projectData || [];
+        // Map fields to match Project type if necessary, or just use as is
+        // Assuming Project type might need update or we map here
+        const fetchedProjects = (projectData || []).map(p => ({
+            ...p,
+            title: p.project_title, // Map project_title to title
+            description: p.project_description // Map project_description to description
+        }));
+        
         setProjects(fetchedProjects);
-
-        if (fetchedProjects.length > 0) {
-            const clientIds = [...new Set(fetchedProjects.map(p => p.client_id))];
-            const { data: profilesData } = await supabase
-                .from('profiles')
-                .select('id, name')
-                .in('id', clientIds);
-            
-            if (profilesData) {
-                const nameMap: Record<string, string> = {};
-                profilesData.forEach(p => { nameMap[p.id] = p.name; });
-                setClientNames(nameMap);
-            }
-        }
+        
+        // No need to fetch client names separately if they are in the table
+        // But we can keep the logic as fallback or just rely on client_name
     } catch (err) {
         console.error('Error fetching projects:', err);
     } finally {
@@ -69,7 +65,7 @@ const EditorFindProjectsPage: React.FC = () => {
     try {
         const { error } = await supabase
             .from('projects')
-            .update({ editor_id: user.id, status: 'in_progress' })
+            .update({ editor_id: user.id, status: 'assigned' }) // 'assigned' instead of 'in_progress'
             .eq('id', id);
         
         if (error) throw error;
@@ -139,15 +135,13 @@ const EditorFindProjectsPage: React.FC = () => {
                         <div className="flex justify-between items-start mb-4">
                             <div>
                                 <h3 className="text-lg font-bold text-white">{project.title}</h3>
-                                {clientNames[project.client_id] && (
-                                    <div className="flex items-center text-xs text-slate-500 mt-1 uppercase tracking-wider">
-                                        <UserIcon className="h-3 w-3 mr-1" />
-                                        {clientNames[project.client_id]}
-                                    </div>
-                                )}
+                                <div className="flex items-center text-xs text-slate-500 mt-1 uppercase tracking-wider">
+                                    <UserIcon className="h-3 w-3 mr-1" />
+                                    {(project as any).client_name || 'Unknown Client'}
+                                </div>
                             </div>
                             <span className="px-3 py-1 rounded-full text-xs font-bold uppercase bg-blue-500/10 text-blue-400 border border-blue-500/20">
-                                Open
+                                {project.status}
                             </span>
                         </div>
                         
