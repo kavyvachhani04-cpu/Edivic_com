@@ -9,11 +9,14 @@ import { User, Star, BadgeCheck, Zap, MessageSquare, Globe, Clock, Monitor, Wren
 interface EditorProfile {
     id: string;
     name: string;
-    skills?: string;
+    full_name?: string;
+    skills?: string | string[];
     bio?: string;
     rating?: number;
     profile_photo?: string;
+    profile_image_url?: string;
     hourly_rate?: string;
+    price_per_hour?: number;
     portfolio_url?: string;
     primary_software?: string;
     years_experience?: string;
@@ -65,8 +68,13 @@ const ViewEditorProfilePage: React.FC = () => {
         { id: 2, client: 'Mike T.', rating: 5, text: 'Great communication and understood the vision perfectly.', date: '1 week ago' },
     ];
 
+    const editorName = editor.full_name || editor.name;
+    const editorPhoto = editor.profile_image_url || editor.profile_photo;
+    const editorRate = editor.price_per_hour ? `$${editor.price_per_hour}` : editor.hourly_rate;
+    const skillsArr = Array.isArray(editor.skills) ? editor.skills : (editor.skills?.split(',') || []);
+
     return (
-        <ClientLayout title="Editor Profile" subtitle={`View details for ${editor.name}`}>
+        <ClientLayout title="Editor Profile" subtitle={`View details for ${editorName}`}>
             <div className="max-w-5xl mx-auto">
                 {/* Header Card */}
                 <div className="glass p-8 rounded-3xl border border-white/10 relative overflow-hidden mb-8">
@@ -75,11 +83,11 @@ const ViewEditorProfilePage: React.FC = () => {
                     <div className="flex flex-col md:flex-row gap-8 items-start relative z-10">
                         {/* Left Side: Photo & Quick Stats */}
                         <div className="w-full md:w-1/3 flex flex-col items-center">
-                            {editor.profile_photo ? (
-                                <img src={editor.profile_photo} alt={editor.name} className="h-48 w-48 rounded-3xl object-cover border-2 border-gold/30 shadow-2xl mb-6" />
+                            {editorPhoto ? (
+                                <img src={editorPhoto} alt={editorName} className="h-48 w-48 rounded-3xl object-cover border-2 border-gold/30 shadow-2xl mb-6" />
                             ) : (
                                 <div className="h-48 w-48 rounded-3xl bg-white/5 flex items-center justify-center border-2 border-gold/30 text-gold font-bold text-6xl shadow-2xl mb-6">
-                                    {editor.name.charAt(0).toUpperCase()}
+                                    {editorName.charAt(0).toUpperCase()}
                                 </div>
                             )}
                             
@@ -92,7 +100,7 @@ const ViewEditorProfilePage: React.FC = () => {
                                     <p className="text-[10px] text-slate-500 uppercase tracking-widest">Rating</p>
                                 </div>
                                 <div className="glass p-3 rounded-2xl border border-white/5 text-center">
-                                    <p className="text-lg font-bold text-white mb-1">{editor.hourly_rate || '$30'}/hr</p>
+                                    <p className="text-lg font-bold text-white mb-1">{editorRate || '$30'}/hr</p>
                                     <p className="text-[10px] text-slate-500 uppercase tracking-widest">Rate</p>
                                 </div>
                             </div>
@@ -101,7 +109,7 @@ const ViewEditorProfilePage: React.FC = () => {
                         {/* Right Side: Details */}
                         <div className="flex-1 w-full">
                             <div className="flex flex-wrap items-center gap-3 mb-4">
-                                <h1 className="text-4xl font-bold text-white font-display">{editor.name}</h1>
+                                <h1 className="text-4xl font-bold text-white font-display">{editorName}</h1>
                                 <BadgeCheck className="h-8 w-8 text-blue-400" />
                                 {editor.id === 'fake-editor-1' && (
                                     <span className="px-2 py-1 bg-gold text-black text-xs font-bold rounded uppercase">Featured</span>
@@ -142,13 +150,13 @@ const ViewEditorProfilePage: React.FC = () => {
                                 </div>
                             </div>
 
-                            {editor.skills && (
+                            {skillsArr.length > 0 && (
                                 <div className="mb-8">
                                     <h3 className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-3 flex items-center gap-2">
                                         <Wrench className="h-3 w-3" /> Skills
                                     </h3>
                                     <div className="flex flex-wrap gap-2">
-                                        {editor.skills.split(',').map((skill, idx) => (
+                                        {skillsArr.map((skill, idx) => (
                                             <span key={idx} className="px-3 py-1.5 bg-white/5 border border-white/10 rounded-lg text-xs text-slate-300 font-medium hover:bg-white/10 transition-colors cursor-default">
                                                 {skill.trim()}
                                             </span>
@@ -161,16 +169,16 @@ const ViewEditorProfilePage: React.FC = () => {
                                 <Button 
                                     size="lg" 
                                     className="bg-gold hover:bg-gold-dark text-black border-none font-bold px-8 flex-1 shadow-lg shadow-gold/10"
-                                    onClick={() => navigate(`/client/post-project?hireName=${encodeURIComponent(editor.name)}&hireId=${editor.id}`)}
+                                    onClick={() => navigate(`/client/post-project?hireName=${encodeURIComponent(editorName)}&hireId=${editor.id}`)}
                                 >
                                     <Zap className="h-5 w-5 mr-2" />
-                                    Hire {editor.name.split(' ')[0]}
+                                    Hire {editorName.split(' ')[0]}
                                 </Button>
                                 <Button 
                                     variant="outline" 
                                     size="lg" 
                                     className="border-white/20 hover:border-gold hover:text-gold text-white px-8 flex-1"
-                                    onClick={() => alert('Chat feature coming soon!')}
+                                    onClick={() => navigate('/client/chat')}
                                 >
                                     <MessageSquare className="h-5 w-5 mr-2" />
                                     Chat

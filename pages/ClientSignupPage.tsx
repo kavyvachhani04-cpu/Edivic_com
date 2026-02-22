@@ -32,35 +32,6 @@ const ClientSignupPage: React.FC = () => {
 
       if (authError) throw authError;
 
-      // 2. Profile creation
-      if (data.user) {
-        // Check if profile exists first to avoid duplicate key error
-        const { data: existingProfile } = await supabase
-            .from('profiles')
-            .select('id')
-            .eq('id', data.user.id)
-            .single();
-
-        if (!existingProfile) {
-            const { error: profileError } = await supabase
-            .from('profiles')
-            .insert([{ 
-                id: data.user.id, 
-                name: name, 
-                email: email, 
-                role: 'client', 
-                created_at: new Date().toISOString(),
-                is_active: true
-                }]);
-
-            if (profileError) {
-                console.error('CRITICAL: Profile creation failed for client:', profileError.message);
-            } else {
-                console.log('Profile successfully created for client:', data.user.id);
-            }
-        }
-      }
-
       if (data.session) {
         await refreshUser(data.session);
         navigate('/dashboard-client');

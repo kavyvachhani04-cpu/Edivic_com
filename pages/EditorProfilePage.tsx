@@ -16,7 +16,8 @@ const EditorProfilePage: React.FC = () => {
     bio: '',
     portfolio_url: '',
     primary_software: '',
-    years_experience: ''
+    years_experience: '',
+    price_per_hour: ''
   });
   const [isSaving, setIsSaving] = useState(false);
   const [message, setMessage] = useState<{type: 'success'|'error', text: string} | null>(null);
@@ -35,20 +36,21 @@ const EditorProfilePage: React.FC = () => {
       if (!user) return;
       try {
           // Fetch additional profile fields
-          const { data, error } = await supabase
+          const { data } = await supabase
             .from('profiles')
-            .select('name, skills, bio, portfolio_url, primary_software, years_experience')
+            .select('name, full_name, skills, bio, portfolio_url, primary_software, years_experience, price_per_hour')
             .eq('id', user.id)
             .single();
           
           if (data) {
               setFormData({
-                  name: data.name || user.name,
-                  skills: data.skills || '',
+                  name: data.full_name || data.name || user.name,
+                  skills: Array.isArray(data.skills) ? data.skills.join(', ') : (data.skills || ''),
                   bio: data.bio || '',
                   portfolio_url: data.portfolio_url || '',
                   primary_software: data.primary_software || '',
-                  years_experience: data.years_experience || ''
+                  years_experience: data.years_experience || '',
+                  price_per_hour: data.price_per_hour?.toString() || ''
               });
           }
       } catch (error) {
@@ -76,11 +78,14 @@ const EditorProfilePage: React.FC = () => {
             .from('profiles')
             .update({ 
                 name: formData.name,
-                skills: formData.skills,
+                full_name: formData.name,
+                skills: formData.skills.split(',').map(s => s.trim()).filter(s => s !== ''),
                 bio: formData.bio,
                 portfolio_url: formData.portfolio_url,
                 primary_software: formData.primary_software,
-                years_experience: formData.years_experience
+                years_experience: formData.years_experience,
+                price_per_hour: parseFloat(formData.price_per_hour) || null,
+                hourly_rate: formData.price_per_hour ? `$${formData.price_per_hour}` : ''
             })
             .eq('id', user.id);
         
@@ -127,15 +132,14 @@ const EditorProfilePage: React.FC = () => {
                             onChange={(e) => setFormData({...formData, name: e.target.value})}
                             disabled={isSaving}
                         />
-                         <div>
-                            <label className="block text-sm font-medium text-slate-300 mb-1.5 uppercase tracking-wider text-xs">Email Address</label>
-                            <input 
-                                type="email" 
-                                value={user.email} 
-                                disabled 
-                                className="w-full px-4 py-3 bg-slate-900/50 border border-slate-700 rounded-lg text-slate-500 cursor-not-allowed"
-                            />
-                        </div>
+                         <Input 
+                            label="Hourly Rate ($)"
+                            type="number"
+                            value={formData.price_per_hour}
+                            onChange={(e) => setFormData({...formData, price_per_hour: e.target.value})}
+                            disabled={isSaving}
+                            placeholder="30"
+                        />
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

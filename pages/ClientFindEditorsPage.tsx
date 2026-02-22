@@ -10,11 +10,16 @@ import { User, Star, BadgeCheck, Zap, MessageSquare, Search, Filter } from 'luci
 interface EditorProfile {
     id: string;
     name: string;
-    skills?: string;
+    full_name?: string;
+    email?: string;
+    skills?: string | string[];
     bio?: string;
     avgRating?: string;
+    rating?: number;
     profile_photo?: string;
+    profile_image_url?: string;
     hourly_rate?: string;
+    price_per_hour?: number;
     is_featured?: boolean;
     is_active?: boolean;
 }
@@ -38,6 +43,34 @@ const ClientFindEditorsPage: React.FC = () => {
             return;
         }
         fetchEditors();
+
+        // Realtime subscription for new editors
+        const channel = supabase
+            .channel('profiles-changes')
+            .on(
+                'postgres_changes',
+                { event: 'INSERT', schema: 'public', table: 'profiles', filter: 'role=eq.editor' },
+                async (payload) => {
+                    const newEditor = payload.new as EditorProfile;
+                    
+                    // Default rating for new editor
+                    const editorWithRating = { 
+                        ...newEditor, 
+                        avgRating: '5.0' 
+                    };
+
+                    setEditors(prev => {
+                        // Avoid duplicates
+                        if (prev.some(e => e.id === editorWithRating.id)) return prev;
+                        return [editorWithRating, ...prev];
+                    });
+                }
+            )
+            .subscribe();
+
+        return () => {
+            supabase.removeChannel(channel);
+        };
     }
   }, [user, loading, navigate]);
 
@@ -47,7 +80,7 @@ const ClientFindEditorsPage: React.FC = () => {
       try {
           const { data: editorsData, error } = await supabase
             .from('profiles')
-            .select('id, name, skills, bio, rating, hourly_rate, is_featured, profile_photo')
+            .select('*')
             .eq('role', 'editor')
             .order('created_at', { ascending: false });
           
@@ -97,13 +130,17 @@ const ClientFindEditorsPage: React.FC = () => {
   };
 
   const handleHireClick = (editor: EditorProfile) => {
-      navigate(`/client/post-project?hireName=${encodeURIComponent(editor.name)}&hireId=${editor.id}`);
+      const editorName = editor.full_name || editor.name;
+      navigate(`/client/post-project?hireName=${encodeURIComponent(editorName)}&hireId=${editor.id}`);
   };
 
   const filteredEditors = editors.filter(editor => {
-      const matchesSearch = editor.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
+      const editorName = (editor.full_name || editor.name).toLowerCase();
+      const matchesSearch = editorName.includes(searchTerm.toLowerCase()) || 
                             (editor.bio && editor.bio.toLowerCase().includes(searchTerm.toLowerCase()));
-      const matchesSkills = filterSkills === '' || (editor.skills && editor.skills.toLowerCase().includes(filterSkills.toLowerCase()));
+      
+      const skillsArr = Array.isArray(editor.skills) ? editor.skills : (editor.skills?.split(',') || []);
+      const matchesSkills = filterSkills === '' || skillsArr.some(s => s.toLowerCase().includes(filterSkills.toLowerCase()));
       return matchesSearch && matchesSkills;
   });
 
@@ -152,7 +189,13 @@ const ClientFindEditorsPage: React.FC = () => {
             </div>
         ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {filteredEditors.map((editor) => (
+                {filteredEditors.map((editor) => {
+                    const editorName = editor.full_name || editor.name;
+                    const editorPhoto = editor.profile_image_url || editor.profile_photo;
+                    const editorRate = editor.price_per_hour ? `$${editor.price_per_hour}` : editor.hourly_rate;
+                    const skillsArr = Array.isArray(editor.skills) ? editor.skills : (editor.skills?.split(',') || []);
+
+                    return (
                     <div key={editor.id} className={`glass p-6 rounded-2xl border transition-all duration-300 group flex flex-col relative overflow-hidden ${editor.is_featured ? 'border-gold/50 shadow-[0_0_15px_rgba(255,215,0,0.1)]' : 'border-white/10 hover:border-gold/50'}`}>
                         {/* Decorative gradient blob */}
                         <div className="absolute -top-10 -right-10 w-32 h-32 bg-gold/5 rounded-full blur-3xl group-hover:bg-gold/10 transition-all"></div>
@@ -164,11 +207,11 @@ const ClientFindEditorsPage: React.FC = () => {
                         )}
 
                         <div className="flex items-start gap-4 mb-4 relative z-10">
-                            {editor.profile_photo ? (
-                                <img src={editor.profile_photo} alt={editor.name} className="h-14 w-14 rounded-xl object-cover border border-white/10 shadow-lg" />
+                            {editorPhoto ? (
+                                <img src={editorPhoto} alt={editorName} className="h-14 w-14 rounded-xl object-cover border border-white/10 shadow-lg" />
                             ) : (
                                 <div className="h-14 w-14 rounded-xl bg-white/5 flex items-center justify-center border border-white/10 text-gold font-bold text-xl shadow-lg">
-                                    {editor.name.charAt(0).toUpperCase()}
+                                    {editorName.charAt(0).toUpperCase()}
                                 </div>
                             )}
                             <div>
@@ -176,26 +219,27 @@ const ClientFindEditorsPage: React.FC = () => {
                                     className="font-bold text-white text-lg group-hover:text-gold transition-colors flex items-center gap-1 cursor-pointer"
                                     onClick={() => navigate(`/client/editor/${editor.id}`)}
                                 >
-                                    {editor.name}
+                                    {editorName}
                                     <BadgeCheck className="h-4 w-4 text-blue-400" />
                                 </h3>
+                                <div className="text-[10px] text-slate-500 mb-1">{editor.email}</div>
                                 <div className="flex items-center text-xs text-gold mt-1">
                                     <Star className="h-3 w-3 fill-gold" />
                                     <span className="text-white ml-1 font-bold">{editor.avgRating || '5.0'}</span>
                                     <span className="text-slate-500 ml-1">Rating</span>
                                 </div>
-                                {editor.hourly_rate && (
+                                {editorRate && (
                                     <div className="text-xs text-slate-400 mt-1">
-                                        {editor.hourly_rate}/hr
+                                        {editorRate}/hr
                                     </div>
                                 )}
                             </div>
                         </div>
                         
-                        {editor.skills && (
+                        {skillsArr.length > 0 && (
                             <div className="mb-4 relative z-10">
                                 <div className="flex flex-wrap gap-2">
-                                    {editor.skills.split(',').slice(0, 3).map((skill, idx) => (
+                                    {skillsArr.slice(0, 3).map((skill, idx) => (
                                         <span key={idx} className="px-2.5 py-1 bg-white/5 border border-white/10 rounded-md text-[10px] uppercase tracking-wider text-slate-300 font-medium">
                                             {skill.trim()}
                                         </span>
@@ -234,7 +278,8 @@ const ClientFindEditorsPage: React.FC = () => {
                             </button>
                         </div>
                     </div>
-                ))}
+                    );
+                })}
             </div>
         )}
 

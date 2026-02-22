@@ -43,6 +43,18 @@ create policy "Enable read access for all authenticated users" on public.project
 create policy "Enable insert for authenticated users" on public.projects for insert with check (auth.uid() = client_id);
 create policy "Enable update for project owners and assigned editors" on public.projects for update using (auth.uid() = client_id or auth.uid() = editor_id);
 
+-- Profile Policies
+alter table public.profiles enable row level security;
+
+drop policy if exists "view_editor_profiles" on public.profiles;
+create policy "view_editor_profiles" on public.profiles for select to authenticated using (role = 'editor' or auth.uid() = id);
+
+drop policy if exists "update_own_profile" on public.profiles;
+create policy "update_own_profile" on public.profiles for update to authenticated using (auth.uid() = id) with check (auth.uid() = id);
+
+drop policy if exists "insert_own_profile" on public.profiles;
+create policy "insert_own_profile" on public.profiles for insert to authenticated with check (auth.uid() = id);
+
 -- 3. UPDATE PROFILES (Add new columns)
 -- Using do block to avoid errors if columns already exist
 do $$

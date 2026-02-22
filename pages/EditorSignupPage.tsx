@@ -44,23 +44,18 @@ const EditorSignupPage: React.FC = () => {
             .from('profiles')
             .insert([{ 
                 id: data.user.id, 
-                name: name, 
+                role: 'editor',
+                full_name: name,
                 email: email, 
-                role: 'editor', 
-                created_at: new Date().toISOString(),
-                rating: 0,
-                is_featured: false,
-                is_active: true,
-                skills: 'Video Editing, Color Grading', 
-                bio: 'Professional video editor ready to work on your projects.', 
-                experience: '1 Year', 
-                hourly_rate: '$30' 
+                bio: '',
+                skills: [], 
+                price_per_hour: 0,
+                profile_image_url: '',
+                created_at: new Date().toISOString()
                 }]);
 
             if (profileError) {
                 console.error('CRITICAL: Profile creation failed for editor:', profileError.message);
-                // We don't throw here to allow the user to still see the "check email" message
-                // but we log it as requested.
             } else {
                 console.log('Profile successfully created for editor:', data.user.id);
             }
