@@ -85,23 +85,24 @@ const ClientDashboard: React.FC = () => {
           // Let's stick to the previous logic of calculating it for freshness, but fallback to profile rating.
           
           const editorsWithRatings = await Promise.all((editorsData || []).map(async (editor) => {
-              // If we want to calculate real-time rating from projects:
-              const { data: ratings } = await supabase
-                  .from('projects')
-                  .select('rating')
-                  .eq('editor_id', editor.id)
-                  .not('rating', 'is', null);
+              let avgRating = editor.rating || 0;
               
-              let avgRating = 0;
-              if (ratings && ratings.length > 0) {
-                  avgRating = ratings.reduce((acc, curr) => acc + (curr.rating || 0), 0) / ratings.length;
-              } else {
-                  // Fallback to stored rating or default
-                  avgRating = editor.rating || 0; 
-                  // If 0, maybe give a "New" boost or just show 0? 
-                  // The previous code gave 5.0 boost. Let's keep it 0 for "New" or 5.0 if we want to be nice.
-                  // Requirement says "rating (default 0)".
-                  if (avgRating === 0) avgRating = 5.0; // New editor boost
+              try {
+                  // If we want to calculate real-time rating from projects:
+                  const { data: ratings, error: ratingError } = await supabase
+                      .from('projects')
+                      .select('rating')
+                      .eq('editor_id', editor.id)
+                      .not('rating', 'is', null);
+                  
+                  if (!ratingError && ratings && ratings.length > 0) {
+                      avgRating = ratings.reduce((acc, curr) => acc + (curr.rating || 0), 0) / ratings.length;
+                  } else if (avgRating === 0) {
+                      avgRating = 5.0;
+                  }
+              } catch (ratingErr) {
+                  console.warn('Error calculating dynamic rating, using stored value:', ratingErr);
+                  if (avgRating === 0) avgRating = 5.0;
               }
 
               return { ...editor, avgRating: Number(avgRating).toFixed(1) };
