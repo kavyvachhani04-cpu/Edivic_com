@@ -4,7 +4,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
 import { EditorLayout } from '../components/EditorLayout';
 import { LoadingScreen } from '../components/LoadingScreen';
-import { Briefcase, CheckCircle, Search, Clock, ArrowUpRight } from 'lucide-react';
+import { Briefcase, CheckCircle, Search, Clock, ArrowUpRight, MessageSquare, Star, User as UserIcon } from 'lucide-react';
 
 const EditorDashboard: React.FC = () => {
   const { user, loading } = useAuth();
@@ -14,6 +14,8 @@ const EditorDashboard: React.FC = () => {
     active: 0,
     completed: 0
   });
+  const [recentProjects, setRecentProjects] = useState<any[]>([]);
+  const [isLoadingProjects, setIsLoadingProjects] = useState(true);
 
   useEffect(() => {
     if (!loading) {
@@ -26,8 +28,27 @@ const EditorDashboard: React.FC = () => {
             return;
         }
         fetchStats();
+        fetchRecentProjects();
     }
   }, [user, loading, navigate]);
+
+  const fetchRecentProjects = async () => {
+      setIsLoadingProjects(true);
+      try {
+          const { data } = await supabase
+            .from('projects')
+            .select('*')
+            .eq('status', 'pending')
+            .order('created_at', { ascending: false })
+            .limit(3);
+          
+          setRecentProjects(data || []);
+      } catch (e) {
+          console.error('Error fetching recent projects:', e);
+      } finally {
+          setIsLoadingProjects(false);
+      }
+  };
 
   const fetchStats = async () => {
     if (!user) return;
@@ -131,21 +152,83 @@ const EditorDashboard: React.FC = () => {
             </div>
         </div>
 
-        {/* Quick Tips Section */}
-        <div className="bg-surface rounded-2xl p-8 border border-white/10">
-            <h3 className="text-lg font-bold text-white mb-4 font-display">Tips for Success</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="flex gap-4">
-                    <div className="h-8 w-8 rounded-full bg-white/10 flex items-center justify-center text-gold font-bold flex-shrink-0 border border-white/10">1</div>
-                    <p className="text-slate-400 text-sm leading-relaxed">
-                        Always read the project description carefully before accepting. Ensure the budget and deadline work for you.
-                    </p>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-10">
+            {/* Recent Projects */}
+            <div className="lg:col-span-2 space-y-6">
+                <div className="flex items-center justify-between">
+                    <h3 className="text-xl font-bold text-white font-display">Recent Available Projects</h3>
+                    <button 
+                        onClick={() => navigate('/editor/find-projects')}
+                        className="text-sm text-gold hover:underline"
+                    >
+                        View All
+                    </button>
                 </div>
-                <div className="flex gap-4">
-                    <div className="h-8 w-8 rounded-full bg-white/10 flex items-center justify-center text-gold font-bold flex-shrink-0 border border-white/10">2</div>
-                    <p className="text-slate-400 text-sm leading-relaxed">
-                        Communicate clearly with the client if provided. High quality work leads to repeat clients.
-                    </p>
+
+                <div className="space-y-4">
+                    {isLoadingProjects ? (
+                        [1, 2].map(i => <div key={i} className="h-32 rounded-2xl bg-white/5 animate-pulse border border-white/5"></div>)
+                    ) : recentProjects.length === 0 ? (
+                        <div className="p-10 text-center glass rounded-2xl border border-dashed border-white/10">
+                            <p className="text-slate-500">No projects available at the moment.</p>
+                        </div>
+                    ) : (
+                        recentProjects.map(project => (
+                            <div key={project.id} className="glass p-5 rounded-2xl border border-white/10 hover:border-gold/30 transition-all group">
+                                <div className="flex justify-between items-start mb-3">
+                                    <div>
+                                        <h4 className="font-bold text-white group-hover:text-gold transition-colors">{project.title}</h4>
+                                        <div className="flex items-center text-[10px] text-slate-500 mt-1 uppercase tracking-wider">
+                                            <UserIcon className="h-3 w-3 mr-1" />
+                                            {project.client_name || 'Client'}
+                                        </div>
+                                    </div>
+                                    <div className="text-gold font-bold text-sm">{project.budget}</div>
+                                </div>
+                                <p className="text-xs text-slate-400 line-clamp-2 mb-4">{project.description}</p>
+                                <div className="flex justify-between items-center">
+                                    <div className="flex items-center text-[10px] text-slate-500">
+                                        <Clock className="h-3 w-3 mr-1" /> {new Date(project.created_at).toLocaleDateString()}
+                                    </div>
+                                    <div className="flex gap-2">
+                                        <button 
+                                            onClick={() => alert('Chat feature coming soon!')}
+                                            className="p-2 rounded-lg bg-white/5 border border-white/10 hover:bg-white/10 text-white transition-colors"
+                                            title="Chat with Client"
+                                        >
+                                            <MessageSquare className="h-4 w-4" />
+                                        </button>
+                                        <Button 
+                                            size="sm" 
+                                            className="bg-gold hover:bg-gold-dark text-black border-none font-bold text-xs"
+                                            onClick={() => navigate('/editor/find-projects')}
+                                        >
+                                            View Details
+                                        </Button>
+                                    </div>
+                                </div>
+                            </div>
+                        ))
+                    )}
+                </div>
+            </div>
+
+            {/* Quick Tips Section */}
+            <div className="bg-surface rounded-2xl p-6 border border-white/10 h-fit">
+                <h3 className="text-lg font-bold text-white mb-6 font-display">Tips for Success</h3>
+                <div className="space-y-6">
+                    <div className="flex gap-4">
+                        <div className="h-8 w-8 rounded-full bg-white/10 flex items-center justify-center text-gold font-bold flex-shrink-0 border border-white/10 text-xs">1</div>
+                        <p className="text-slate-400 text-xs leading-relaxed">
+                            Always read the project description carefully before accepting. Ensure the budget and deadline work for you.
+                        </p>
+                    </div>
+                    <div className="flex gap-4">
+                        <div className="h-8 w-8 rounded-full bg-white/10 flex items-center justify-center text-gold font-bold flex-shrink-0 border border-white/10 text-xs">2</div>
+                        <p className="text-slate-400 text-xs leading-relaxed">
+                            Communicate clearly with the client if provided. High quality work leads to repeat clients.
+                        </p>
+                    </div>
                 </div>
             </div>
         </div>

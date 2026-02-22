@@ -4,7 +4,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
 import { EditorLayout } from '../components/EditorLayout';
 import { Button } from '../components/Button';
-import { Search, DollarSign, Calendar, Filter, Briefcase, User as UserIcon, Star } from 'lucide-react';
+import { Search, DollarSign, Calendar, Filter, Briefcase, User as UserIcon, Star, MessageSquare } from 'lucide-react';
 import { Project } from '../types';
 
 const EditorFindProjectsPage: React.FC = () => {
@@ -215,13 +215,22 @@ const EditorFindProjectsPage: React.FC = () => {
                                 </div>
                             </div>
                             
-                            <Button 
-                                fullWidth 
-                                onClick={() => handleAcceptProject(project.id)} 
-                                className="bg-purple-600 hover:bg-purple-700 border-none shadow-lg shadow-purple-900/20"
-                            >
-                                Accept Project
-                            </Button>
+                            <div className="flex gap-3">
+                                <Button 
+                                    fullWidth 
+                                    onClick={() => handleAcceptProject(project.id)} 
+                                    className="bg-purple-600 hover:bg-purple-700 border-none shadow-lg shadow-purple-900/20 flex-1"
+                                >
+                                    Accept Project
+                                </Button>
+                                <button 
+                                    onClick={() => alert('Chat feature coming soon!')}
+                                    className="px-4 py-2 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 text-white transition-colors flex items-center justify-center"
+                                    title="Chat with Client"
+                                >
+                                    <MessageSquare className="h-5 w-5" />
+                                </button>
+                            </div>
                         </div>
                     </div>
                 ))

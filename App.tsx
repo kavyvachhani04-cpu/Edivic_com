@@ -18,6 +18,7 @@ import ClientPostProjectPage from './pages/ClientPostProjectPage';
 import ClientMyProjectsPage from './pages/ClientMyProjectsPage'; 
 import ClientCompletedProjectsPage from './pages/ClientCompletedProjectsPage'; 
 import ClientProfilePage from './pages/ClientProfilePage'; 
+import ViewEditorProfilePage from './pages/ViewEditorProfilePage';
 
 // Editor Pages
 import EditorSignupPage from './pages/EditorSignupPage';
@@ -69,6 +70,7 @@ const App: React.FC = () => {
             <Route path="/client/my-projects" element={<RoleGuard allowedRoles={['client']}><ClientMyProjectsPage /></RoleGuard>} />
             <Route path="/client/completed-projects" element={<RoleGuard allowedRoles={['client']}><ClientCompletedProjectsPage /></RoleGuard>} />
             <Route path="/client/profile" element={<RoleGuard allowedRoles={['client']}><ClientProfilePage /></RoleGuard>} />
+            <Route path="/client/editor/:id" element={<RoleGuard allowedRoles={['client']}><ViewEditorProfilePage /></RoleGuard>} />
 
             {/* Editor Routes */}
             <Route path="/login-editor" element={<EditorLoginPage />} />

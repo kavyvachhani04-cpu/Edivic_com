@@ -212,7 +212,10 @@ const ClientDashboard: React.FC = () => {
                                     </div>
                                 )}
                                 <div>
-                                    <h3 className="font-bold text-white text-lg group-hover:text-gold transition-colors flex items-center gap-1">
+                                    <h3 
+                                        className="font-bold text-white text-lg group-hover:text-gold transition-colors flex items-center gap-1 cursor-pointer"
+                                        onClick={() => navigate(`/client/editor/${editor.id}`)}
+                                    >
                                         {editor.name}
                                         <BadgeCheck className="h-4 w-4 text-blue-400" />
                                     </h3>
@@ -245,6 +248,12 @@ const ClientDashboard: React.FC = () => {
                                 <p className="text-sm text-slate-400 line-clamp-3 leading-relaxed">
                                     {editor.bio || "Professional video editor ready to take on your project. Experienced in various editing styles and software."}
                                 </p>
+                                <button 
+                                    onClick={() => navigate(`/client/editor/${editor.id}`)}
+                                    className="text-xs text-gold mt-2 hover:underline font-medium"
+                                >
+                                    View Full Profile
+                                </button>
                             </div>
 
                             <div className="flex gap-3 mt-auto relative z-10">
