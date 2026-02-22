@@ -66,9 +66,9 @@ const ClientPostProjectPage: React.FC = () => {
       if (error) throw error;
       
       navigate('/client/my-projects');
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error creating project:', error);
-      alert('Failed to post project. Please try again.');
+      alert(`Failed to post project: ${error.message || error.error_description || 'Unknown error'}`);
     } finally {
       setIsSubmitting(false);
     }
