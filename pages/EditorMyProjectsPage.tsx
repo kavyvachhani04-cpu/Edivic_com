@@ -66,8 +66,8 @@ const EditorMyProjectsPage: React.FC = () => {
   const handleChatClick = async (clientId: string, projectId: string) => {
       if (!user) return;
       try {
-          const conversationId = await startConversation(clientId, user.id, projectId);
-          navigate(`/editor/chat?conversation_id=${conversationId}`);
+          const chatId = await startConversation(clientId, user.id);
+          navigate(`/editor/chat?chat_id=${chatId}`);
       } catch (error) {
           console.error('Failed to start chat:', error);
           alert('Failed to start chat. Please try again.');

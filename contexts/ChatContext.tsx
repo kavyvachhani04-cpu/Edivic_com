@@ -40,15 +40,15 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
         // and the user is NOT the sender
         if (newMessage.sender_id !== user.id) {
           const { data: conv } = await supabase
-            .from('conversations')
+            .from('chats')
             .select('id')
-            .eq('id', newMessage.conversation_id)
+            .eq('id', newMessage.chat_id)
             .or(`client_id.eq.${user.id},editor_id.eq.${user.id}`)
             .single();
 
           if (conv) {
             setUnreadCount(prev => prev + 1);
-            showNotification(newMessage.message_text);
+            showNotification(newMessage.message);
           }
         }
       })
@@ -65,7 +65,7 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       // Get all conversation IDs for the user
       const { data: convs } = await supabase
-        .from('conversations')
+        .from('chats')
         .select('id')
         .or(`client_id.eq.${user.id},editor_id.eq.${user.id}`);
 
@@ -77,7 +77,7 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const { count, error } = await supabase
         .from('messages')
         .select('*', { count: 'exact', head: true })
-        .in('conversation_id', convIds)
+        .in('chat_id', convIds)
         .neq('sender_id', user.id)
         .eq('is_read', false);
 
@@ -95,7 +95,7 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const { error } = await supabase
         .from('messages')
         .update({ is_read: true })
-        .eq('conversation_id', conversationId)
+        .eq('chat_id', conversationId)
         .neq('sender_id', user.id)
         .eq('is_read', false);
 

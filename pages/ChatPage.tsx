@@ -11,7 +11,6 @@ interface Conversation {
   id: string;
   client_id: string;
   editor_id: string;
-  project_id: string | null;
   created_at: string;
   other_user?: {
     id: string;
@@ -26,10 +25,10 @@ interface Conversation {
 
 interface Message {
   id: string;
-  conversation_id: string;
+  chat_id: string;
   sender_id: string;
   sender_role: 'client' | 'editor';
-  message_text: string;
+  message: string;
   created_at: string;
 }
 
@@ -37,7 +36,7 @@ const ChatPage: React.FC = () => {
   const { user } = useAuth();
   const { markAsRead } = useChat();
   const [searchParams] = useSearchParams();
-  const initialConversationId = searchParams.get('conversation_id');
+  const initialConversationId = searchParams.get('chat_id') || searchParams.get('conversation_id');
   
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [activeConversationId, setActiveConversationId] = useState<string | null>(initialConversationId);
@@ -67,7 +66,7 @@ const ChatPage: React.FC = () => {
           event: 'INSERT',
           schema: 'public',
           table: 'messages',
-          filter: `conversation_id=eq.${activeConversationId}`
+          filter: `chat_id=eq.${activeConversationId}`
         }, payload => {
           setMessages(prev => {
             // Avoid duplicates
@@ -98,9 +97,9 @@ const ChatPage: React.FC = () => {
     if (!user) return;
     try {
       const { data: convs, error } = await supabase
-        .from('conversations')
+        .from('chats')
         .select(`
-          id, client_id, editor_id, project_id, created_at
+          id, client_id, editor_id, created_at
         `)
         .or(`client_id.eq.${user.id},editor_id.eq.${user.id}`)
         .order('created_at', { ascending: false });
@@ -119,8 +118,8 @@ const ChatPage: React.FC = () => {
         // Fetch last message
         const { data: lastMsg } = await supabase
           .from('messages')
-          .select('message_text, created_at')
-          .eq('conversation_id', conv.id)
+          .select('message, created_at')
+          .eq('chat_id', conv.id)
           .order('created_at', { ascending: false })
           .limit(1)
           .single();
@@ -133,7 +132,7 @@ const ChatPage: React.FC = () => {
             profile_photo: profile.profile_image_url || profile.profile_photo
           } : undefined,
           last_message: lastMsg ? {
-            text: lastMsg.message_text,
+            text: lastMsg.message,
             created_at: lastMsg.created_at
           } : undefined
         };
@@ -155,7 +154,7 @@ const ChatPage: React.FC = () => {
       const { data, error } = await supabase
         .from('messages')
         .select('*')
-        .eq('conversation_id', conversationId)
+        .eq('chat_id', conversationId)
         .order('created_at', { ascending: true });
 
       if (error) throw error;
@@ -176,10 +175,10 @@ const ChatPage: React.FC = () => {
       const { error } = await supabase
         .from('messages')
         .insert([{
-          conversation_id: activeConversationId,
+          chat_id: activeConversationId,
           sender_id: user.id,
           sender_role: user.role,
-          message_text: messageText
+          message: messageText
         }]);
 
       if (error) throw error;
@@ -328,7 +327,7 @@ const ChatPage: React.FC = () => {
                               : 'bg-zinc-800 text-white rounded-tl-sm border border-white/5'
                           }`}
                         >
-                          <p className="text-sm whitespace-pre-wrap break-words">{msg.message_text}</p>
+                          <p className="text-sm whitespace-pre-wrap break-words">{msg.message}</p>
                         </div>
                         <div className="flex items-center gap-1 mt-1 px-1 text-[10px] text-slate-500">
                           <Clock className="h-3 w-3" />

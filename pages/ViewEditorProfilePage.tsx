@@ -72,8 +72,8 @@ const ViewEditorProfilePage: React.FC = () => {
     const handleChatClick = async () => {
         if (!user || !editor) return;
         try {
-            const conversationId = await startConversation(user.id, editor.id);
-            navigate(`/client/chat?conversation_id=${conversationId}`);
+            const chatId = await startConversation(user.id, editor.id);
+            navigate(`/client/chat?chat_id=${chatId}`);
         } catch (error) {
             console.error('Failed to start chat:', error);
             alert('Failed to start chat. Please try again.');
