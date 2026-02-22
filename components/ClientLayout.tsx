@@ -13,7 +13,8 @@ import {
   Bell,
   Rocket,
   Settings,
-  Search
+  Search,
+  MessageSquare
 } from 'lucide-react';
 
 interface ClientLayoutProps {
@@ -40,6 +41,7 @@ export const ClientLayout: React.FC<ClientLayoutProps> = ({ children, title, sub
     { icon: <PlusCircle className="h-5 w-5" />, label: 'Post Project', path: '/client/post-project' },
     { icon: <Briefcase className="h-5 w-5" />, label: 'My Projects', path: '/client/my-projects' },
     { icon: <CheckCircle className="h-5 w-5" />, label: 'Completed', path: '/client/completed-projects' },
+    { icon: <MessageSquare className="h-5 w-5" />, label: 'Chat', path: '/client/chat' },
     { icon: <User className="h-5 w-5" />, label: 'Profile', path: '/client/profile' },
   ];
 

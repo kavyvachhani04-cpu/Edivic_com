@@ -95,15 +95,23 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             
             // Handle Refresh Token Error specifically
             if (result.error) {
-                if (result.error.message?.includes('Refresh Token') || result.error.message?.includes('refresh_token_not_found')) {
+                const errMsg = result.error.message || '';
+                // Check for various refresh token error patterns
+                if (
+                    errMsg.includes('Refresh Token') || 
+                    errMsg.includes('refresh_token_not_found') ||
+                    errMsg.includes('Invalid Refresh Token') ||
+                    errMsg.includes('not found')
+                ) {
                     console.warn('Refresh token invalid, clearing session.');
-                    await supabase.auth.signOut();
+                    // Force sign out to clear invalid tokens
+                    await supabase.auth.signOut().catch(() => {}); 
                     setUser(null);
                     setLoading(false);
                     return null;
                 }
                 // For other errors, just log and continue as guest
-                console.warn('Session fetch error:', result.error.message);
+                console.warn('Session fetch error:', errMsg);
             }
             
             currentSession = result.data?.session;
@@ -134,7 +142,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     refreshUser(); // Restore initial check
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      if (event === 'SIGNED_OUT' || event === 'USER_DELETED') {
+      if (event === 'SIGNED_OUT') {
         // Clear user state immediately on sign out
         setUser(null);
         setLoading(false);

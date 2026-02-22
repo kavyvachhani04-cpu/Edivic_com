@@ -20,6 +20,7 @@ import ClientCompletedProjectsPage from './pages/ClientCompletedProjectsPage';
 import ClientProfilePage from './pages/ClientProfilePage'; 
 import ViewEditorProfilePage from './pages/ViewEditorProfilePage';
 import ClientFindEditorsPage from './pages/ClientFindEditorsPage';
+import ChatPage from './pages/ChatPage';
 
 // Editor Pages
 import EditorSignupPage from './pages/EditorSignupPage';
@@ -73,6 +74,7 @@ const App: React.FC = () => {
             <Route path="/client/profile" element={<RoleGuard allowedRoles={['client']}><ClientProfilePage /></RoleGuard>} />
             <Route path="/client/editor/:id" element={<RoleGuard allowedRoles={['client']}><ViewEditorProfilePage /></RoleGuard>} />
             <Route path="/client/find-editors" element={<RoleGuard allowedRoles={['client']}><ClientFindEditorsPage /></RoleGuard>} />
+            <Route path="/client/chat" element={<RoleGuard allowedRoles={['client']}><ChatPage /></RoleGuard>} />
 
             {/* Editor Routes */}
             <Route path="/login-editor" element={<EditorLoginPage />} />
@@ -85,6 +87,7 @@ const App: React.FC = () => {
             <Route path="/editor/my-projects" element={<RoleGuard allowedRoles={['editor']}><SubscriptionGuard><EditorMyProjectsPage /></SubscriptionGuard></RoleGuard>} />
             <Route path="/editor/completed-projects" element={<RoleGuard allowedRoles={['editor']}><SubscriptionGuard><EditorCompletedProjectsPage /></SubscriptionGuard></RoleGuard>} />
             <Route path="/editor/profile" element={<RoleGuard allowedRoles={['editor']}><SubscriptionGuard><EditorProfilePage /></SubscriptionGuard></RoleGuard>} />
+            <Route path="/editor/chat" element={<RoleGuard allowedRoles={['editor']}><SubscriptionGuard><ChatPage /></SubscriptionGuard></RoleGuard>} />
             
             {/* Admin Routes */}
             <Route path="/admin/login" element={<AdminLoginPage />} />

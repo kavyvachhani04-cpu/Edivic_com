@@ -16,7 +16,8 @@ import {
   Bell,
   ShieldCheck,
   CreditCard,
-  Settings
+  Settings,
+  MessageSquare
 } from 'lucide-react';
 
 interface EditorLayoutProps {
@@ -42,6 +43,7 @@ export const EditorLayout: React.FC<EditorLayoutProps> = ({ children, title, sub
     { icon: <Search className="h-5 w-5" />, label: 'Find Projects', path: '/editor/find-projects' },
     { icon: <Briefcase className="h-5 w-5" />, label: 'My Projects', path: '/editor/my-projects' },
     { icon: <CheckCircle className="h-5 w-5" />, label: 'Completed', path: '/editor/completed-projects' },
+    { icon: <MessageSquare className="h-5 w-5" />, label: 'Chat', path: '/editor/chat' },
     { icon: <CreditCard className="h-5 w-5" />, label: 'Subscription', path: '/editor/subscription' },
     { icon: <User className="h-5 w-5" />, label: 'Profile', path: '/editor/profile' },
   ];
