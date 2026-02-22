@@ -10,6 +10,7 @@ interface EditorProfile {
     id: string;
     name: string;
     full_name?: string;
+    email?: string;
     skills?: string | string[];
     bio?: string;
     rating?: number;
@@ -47,14 +48,28 @@ const ViewEditorProfilePage: React.FC = () => {
             setEditor(data);
         } catch (e) {
             console.error('Error fetching editor profile:', e);
-            navigate('/dashboard-client');
+            setEditor(null);
         } finally {
             setLoading(false);
         }
     };
 
     if (loading) return <LoadingScreen />;
-    if (!editor) return null;
+    
+    if (!editor) {
+        return (
+            <ClientLayout title="Editor Not Found" subtitle="We couldn't find the editor you're looking for.">
+                <div className="text-center py-16 bg-surface rounded-2xl border border-dashed border-white/10 max-w-2xl mx-auto mt-8">
+                    <User className="h-16 w-16 text-slate-600 mx-auto mb-4" />
+                    <h2 className="text-2xl font-bold text-white mb-2">Profile Not Found</h2>
+                    <p className="text-slate-400 mb-6">The editor profile you are trying to view does not exist or has been removed.</p>
+                    <Button onClick={() => navigate('/client/find-editors')} className="bg-primary-600 hover:bg-primary-500 text-white">
+                        Back to Find Editors
+                    </Button>
+                </div>
+            </ClientLayout>
+        );
+    }
 
     // Placeholder Data for UI
     const portfolioItems = [
@@ -108,15 +123,21 @@ const ViewEditorProfilePage: React.FC = () => {
 
                         {/* Right Side: Details */}
                         <div className="flex-1 w-full">
-                            <div className="flex flex-wrap items-center gap-3 mb-4">
+                            <div className="flex flex-wrap items-center gap-3 mb-2">
                                 <h1 className="text-4xl font-bold text-white font-display">{editorName}</h1>
                                 <BadgeCheck className="h-8 w-8 text-blue-400" />
-                                {editor.id === 'fake-editor-1' && (
+                                {editor.is_featured && (
                                     <span className="px-2 py-1 bg-gold text-black text-xs font-bold rounded uppercase">Featured</span>
                                 )}
                             </div>
                             
-                            <p className="text-slate-400 text-lg mb-8 leading-relaxed">
+                            {editor.email && (
+                                <div className="text-slate-400 text-sm mb-6 flex items-center gap-2">
+                                    <span className="px-2 py-1 bg-white/5 rounded-md border border-white/10">{editor.email}</span>
+                                </div>
+                            )}
+                            
+                            <p className="text-slate-300 text-lg mb-8 leading-relaxed">
                                 {editor.bio || "Professional video editor with a passion for storytelling. I specialize in creating high-impact content that resonates with audiences."}
                             </p>
 

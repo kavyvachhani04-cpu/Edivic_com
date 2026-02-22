@@ -56,7 +56,7 @@ const ClientFindEditorsPage: React.FC = () => {
                     // Default rating for new editor
                     const editorWithRating = { 
                         ...newEditor, 
-                        avgRating: '5.0' 
+                        avgRating: '0.0' 
                     };
 
                     setEditors(prev => {
@@ -96,7 +96,7 @@ const ClientFindEditorsPage: React.FC = () => {
 
           // More robust rating calculation
           const editorsWithRatings = await Promise.all(fetchedEditors.map(async (editor) => {
-              let avgRating = 5.0; // Default to 5.0
+              let avgRating = 0.0; // Default to 0.0
               
               try {
                   const { data: ratings, error: ratingError } = await supabase
@@ -115,7 +115,7 @@ const ClientFindEditorsPage: React.FC = () => {
 
               return { 
                 ...editor, 
-                avgRating: Number(avgRating || 5.0).toFixed(1) 
+                avgRating: Number(avgRating || 0.0).toFixed(1) 
               };
           }));
           
@@ -137,7 +137,7 @@ const ClientFindEditorsPage: React.FC = () => {
   };
 
   const handleHireClick = (editor: EditorProfile) => {
-      const editorName = editor.full_name || editor.name || 'Editor';
+      const editorName = editor.full_name || editor.name || (editor.email ? editor.email.split('@')[0] : 'Editor');
       navigate(`/client/post-project?hireName=${encodeURIComponent(editorName)}&hireId=${editor.id}`);
   };
 
@@ -198,7 +198,7 @@ const ClientFindEditorsPage: React.FC = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {filteredEditors.map((editor) => {
                     // Robust property access to prevent crashes
-                    const editorName = String(editor.full_name || editor.name || 'Anonymous Editor');
+                    const editorName = String(editor.full_name || editor.name || (editor.email ? editor.email.split('@')[0] : 'Editor'));
                     const editorPhoto = editor.profile_image_url || editor.profile_photo;
                     const editorRate = editor.price_per_hour ? `$${editor.price_per_hour}` : (editor.hourly_rate || '$0');
                     const skillsArr = Array.isArray(editor.skills) ? editor.skills : (typeof editor.skills === 'string' ? editor.skills.split(',') : []);
@@ -233,7 +233,7 @@ const ClientFindEditorsPage: React.FC = () => {
                                 <div className="text-[10px] text-slate-500 mb-1">{editor.email || 'No email provided'}</div>
                                 <div className="flex items-center text-xs text-gold mt-1">
                                     <Star className="h-3 w-3 fill-gold" />
-                                    <span className="text-white ml-1 font-bold">{editor.avgRating || '5.0'}</span>
+                                    <span className="text-white ml-1 font-bold">{editor.avgRating || '0.0'}</span>
                                     <span className="text-slate-500 ml-1">Rating</span>
                                 </div>
                                 {editorRate && (
