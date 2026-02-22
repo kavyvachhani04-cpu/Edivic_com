@@ -76,6 +76,7 @@ const ClientFindEditorsPage: React.FC = () => {
 
   const fetchEditors = async () => {
       setLoadingEditors(true);
+      console.log('Fetching editors from Supabase...');
       
       try {
           const { data: editorsData, error } = await supabase
@@ -86,13 +87,16 @@ const ClientFindEditorsPage: React.FC = () => {
           
           if (error) {
               console.error('Supabase error fetching editors:', error);
-              // Don't throw, just log
+              setEditors([]);
+              return;
           }
 
+          console.log('Fetched editors raw data:', editorsData);
           const fetchedEditors = editorsData || [];
 
+          // More robust rating calculation
           const editorsWithRatings = await Promise.all(fetchedEditors.map(async (editor) => {
-              let avgRating = editor.rating || 0;
+              let avgRating = 5.0; // Default to 5.0
               
               try {
                   const { data: ratings, error: ratingError } = await supabase
@@ -102,15 +106,17 @@ const ClientFindEditorsPage: React.FC = () => {
                       .not('rating', 'is', null);
                   
                   if (!ratingError && ratings && ratings.length > 0) {
-                      avgRating = ratings.reduce((acc, curr) => acc + (curr.rating || 0), 0) / ratings.length;
-                  } else if (avgRating === 0) {
-                      avgRating = 5.0;
+                      const sum = ratings.reduce((acc, curr) => acc + (Number(curr.rating) || 0), 0);
+                      avgRating = sum / ratings.length;
                   }
               } catch (ratingErr) {
-                  if (avgRating === 0) avgRating = 5.0;
+                  console.warn(`Could not fetch ratings for editor ${editor.id}:`, ratingErr);
               }
 
-              return { ...editor, avgRating: Number(avgRating).toFixed(1) };
+              return { 
+                ...editor, 
+                avgRating: Number(avgRating || 5.0).toFixed(1) 
+              };
           }));
           
           // Sort: Featured first
@@ -120,9 +126,10 @@ const ClientFindEditorsPage: React.FC = () => {
               return 0;
           });
 
+          console.log('Processed editors with ratings:', sortedEditors);
           setEditors(sortedEditors);
       } catch (e) {
-          console.error('Error fetching editors:', e);
+          console.error('Unexpected error in fetchEditors:', e);
           setEditors([]);
       } finally {
           setLoadingEditors(false);
@@ -130,17 +137,17 @@ const ClientFindEditorsPage: React.FC = () => {
   };
 
   const handleHireClick = (editor: EditorProfile) => {
-      const editorName = editor.full_name || editor.name;
+      const editorName = editor.full_name || editor.name || 'Editor';
       navigate(`/client/post-project?hireName=${encodeURIComponent(editorName)}&hireId=${editor.id}`);
   };
 
   const filteredEditors = editors.filter(editor => {
-      const editorName = (editor.full_name || editor.name).toLowerCase();
+      const editorName = String(editor.full_name || editor.name || '').toLowerCase();
       const matchesSearch = editorName.includes(searchTerm.toLowerCase()) || 
-                            (editor.bio && editor.bio.toLowerCase().includes(searchTerm.toLowerCase()));
+                            (editor.bio && String(editor.bio).toLowerCase().includes(searchTerm.toLowerCase()));
       
       const skillsArr = Array.isArray(editor.skills) ? editor.skills : (editor.skills?.split(',') || []);
-      const matchesSkills = filterSkills === '' || skillsArr.some(s => s.toLowerCase().includes(filterSkills.toLowerCase()));
+      const matchesSkills = filterSkills === '' || skillsArr.some(s => String(s).toLowerCase().includes(filterSkills.toLowerCase()));
       return matchesSearch && matchesSkills;
   });
 
@@ -190,10 +197,11 @@ const ClientFindEditorsPage: React.FC = () => {
         ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {filteredEditors.map((editor) => {
-                    const editorName = editor.full_name || editor.name;
+                    // Robust property access to prevent crashes
+                    const editorName = String(editor.full_name || editor.name || 'Anonymous Editor');
                     const editorPhoto = editor.profile_image_url || editor.profile_photo;
-                    const editorRate = editor.price_per_hour ? `$${editor.price_per_hour}` : editor.hourly_rate;
-                    const skillsArr = Array.isArray(editor.skills) ? editor.skills : (editor.skills?.split(',') || []);
+                    const editorRate = editor.price_per_hour ? `$${editor.price_per_hour}` : (editor.hourly_rate || '$0');
+                    const skillsArr = Array.isArray(editor.skills) ? editor.skills : (typeof editor.skills === 'string' ? editor.skills.split(',') : []);
 
                     return (
                     <div key={editor.id} className={`glass p-6 rounded-2xl border transition-all duration-300 group flex flex-col relative overflow-hidden ${editor.is_featured ? 'border-gold/50 shadow-[0_0_15px_rgba(255,215,0,0.1)]' : 'border-white/10 hover:border-gold/50'}`}>
@@ -211,7 +219,7 @@ const ClientFindEditorsPage: React.FC = () => {
                                 <img src={editorPhoto} alt={editorName} className="h-14 w-14 rounded-xl object-cover border border-white/10 shadow-lg" />
                             ) : (
                                 <div className="h-14 w-14 rounded-xl bg-white/5 flex items-center justify-center border border-white/10 text-gold font-bold text-xl shadow-lg">
-                                    {editorName.charAt(0).toUpperCase()}
+                                    {editorName.charAt(0).toUpperCase() || '?'}
                                 </div>
                             )}
                             <div>
@@ -222,7 +230,7 @@ const ClientFindEditorsPage: React.FC = () => {
                                     {editorName}
                                     <BadgeCheck className="h-4 w-4 text-blue-400" />
                                 </h3>
-                                <div className="text-[10px] text-slate-500 mb-1">{editor.email}</div>
+                                <div className="text-[10px] text-slate-500 mb-1">{editor.email || 'No email provided'}</div>
                                 <div className="flex items-center text-xs text-gold mt-1">
                                     <Star className="h-3 w-3 fill-gold" />
                                     <span className="text-white ml-1 font-bold">{editor.avgRating || '5.0'}</span>
@@ -241,7 +249,7 @@ const ClientFindEditorsPage: React.FC = () => {
                                 <div className="flex flex-wrap gap-2">
                                     {skillsArr.slice(0, 3).map((skill, idx) => (
                                         <span key={idx} className="px-2.5 py-1 bg-white/5 border border-white/10 rounded-md text-[10px] uppercase tracking-wider text-slate-300 font-medium">
-                                            {skill.trim()}
+                                            {String(skill).trim()}
                                         </span>
                                     ))}
                                 </div>

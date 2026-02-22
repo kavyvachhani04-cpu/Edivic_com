@@ -98,7 +98,7 @@ export const ClientLayout: React.FC<ClientLayoutProps> = ({ children, title, sub
             <div className="bg-slate-800/50 rounded-xl p-4 mb-4 border border-white/5">
                 <div className="flex items-center gap-3">
                     <div className="h-10 w-10 rounded-full bg-gradient-to-br from-primary-500 to-blue-600 flex items-center justify-center text-white font-bold text-sm shadow-lg">
-                        {user?.name.charAt(0).toUpperCase()}
+                        {user?.name?.charAt(0).toUpperCase() || 'U'}
                     </div>
                     <div className="overflow-hidden">
                         <p className="text-sm font-bold text-white truncate">{user?.name}</p>
@@ -154,7 +154,7 @@ export const ClientLayout: React.FC<ClientLayoutProps> = ({ children, title, sub
                            <p className="text-xs text-slate-400">Client</p>
                          </div>
                          <div className="h-10 w-10 rounded-full bg-gradient-to-br from-primary-500 to-blue-600 flex items-center justify-center text-white font-bold text-sm shadow-lg group-hover:shadow-primary-500/30 transition-all border border-white/10">
-                           {user?.name.charAt(0).toUpperCase()}
+                           {user?.name?.charAt(0).toUpperCase() || 'U'}
                          </div>
                       </button>
 
