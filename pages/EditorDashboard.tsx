@@ -194,10 +194,11 @@ const EditorDashboard: React.FC = () => {
                                     <div className="flex gap-2">
                                         <button 
                                             onClick={() => alert('Chat feature coming soon!')}
-                                            className="p-2 rounded-lg bg-white/5 border border-white/10 hover:bg-white/10 text-white transition-colors"
+                                            className="px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 hover:bg-white/10 text-white transition-colors flex items-center text-xs font-bold"
                                             title="Chat with Client"
                                         >
-                                            <MessageSquare className="h-4 w-4" />
+                                            <MessageSquare className="h-3 w-3 mr-1.5" />
+                                            Chat
                                         </button>
                                         <Button 
                                             size="sm" 

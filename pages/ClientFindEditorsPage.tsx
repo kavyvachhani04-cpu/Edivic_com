@@ -44,19 +44,6 @@ const ClientFindEditorsPage: React.FC = () => {
   const fetchEditors = async () => {
       setLoadingEditors(true);
       
-      // Define fake editor (always available for demo)
-      const fakeEditor: EditorProfile = {
-          id: 'fake-editor-1',
-          name: 'Alex Creative (Demo)',
-          skills: 'Premiere Pro, After Effects, Sound Design',
-          bio: 'Award-winning video editor with 5+ years of experience in commercial and documentary editing. This is a demo profile.',
-          avgRating: '4.9',
-          hourly_rate: '$50',
-          is_featured: true,
-          is_active: true,
-          profile_photo: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=774&q=80'
-      };
-
       try {
           const { data: editorsData, error } = await supabase
             .from('profiles')
@@ -94,7 +81,7 @@ const ClientFindEditorsPage: React.FC = () => {
           }));
           
           // Sort: Featured first
-          const sortedEditors = [fakeEditor, ...editorsWithRatings].sort((a, b) => {
+          const sortedEditors = editorsWithRatings.sort((a, b) => {
               if (a.is_featured && !b.is_featured) return -1;
               if (!a.is_featured && b.is_featured) return 1;
               return 0;
@@ -103,7 +90,7 @@ const ClientFindEditorsPage: React.FC = () => {
           setEditors(sortedEditors);
       } catch (e) {
           console.error('Error fetching editors:', e);
-          setEditors([fakeEditor]);
+          setEditors([]);
       } finally {
           setLoadingEditors(false);
       }

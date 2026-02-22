@@ -34,24 +34,6 @@ const ViewEditorProfilePage: React.FC = () => {
     const fetchEditorProfile = async () => {
         setLoading(true);
         try {
-            // Check if it's the fake editor
-            if (id === 'fake-editor-1') {
-                setEditor({
-                    id: 'fake-editor-1',
-                    name: 'Alex Creative (Demo)',
-                    skills: 'Premiere Pro, After Effects, Sound Design, Color Grading',
-                    bio: 'Award-winning video editor with 5+ years of experience in commercial and documentary editing. I specialize in high-energy cuts and cinematic storytelling.',
-                    rating: 4.9,
-                    hourly_rate: '$50',
-                    portfolio_url: 'https://youtube.com',
-                    primary_software: 'Adobe Premiere Pro',
-                    years_experience: '5 Years',
-                    profile_photo: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=774&q=80'
-                });
-                setLoading(false);
-                return;
-            }
-
             const { data, error } = await supabase
                 .from('profiles')
                 .select('*')
