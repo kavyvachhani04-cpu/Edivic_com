@@ -31,7 +31,7 @@ const AdminPanelPage: React.FC = () => {
       if (!user) {
         navigate('/admin/login');
       } else if (!isAdmin) {
-        navigate('/dashboard');
+        navigate('/');
       } else {
         fetchData();
       }

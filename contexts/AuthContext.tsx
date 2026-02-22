@@ -31,7 +31,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const fetchExtendedProfile = async (userId: string) => {
     const { data, error } = await supabase
       .from('profiles')
-      .select('subscription_status, plan_name, subscription_expiry')
+      .select('subscription_status, plan_name, subscription_expiry, role')
       .eq('id', userId)
       .single();
     
@@ -58,6 +58,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     } catch (error) {
       console.warn('Profile fetch failed or timed out:', error);
       // Fallback: proceed without extended profile data
+    }
+
+    if (profile?.role) {
+      role = profile.role;
     }
 
     return {
