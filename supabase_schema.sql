@@ -38,4 +38,25 @@ BEGIN
     IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'profiles' AND column_name = 'role') THEN
         ALTER TABLE profiles ADD COLUMN role TEXT CHECK (role IN ('client', 'editor', 'admin'));
     END IF;
+
+    -- Projects table updates
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'projects' AND column_name = 'category') THEN
+        ALTER TABLE projects ADD COLUMN category TEXT;
+    END IF;
+
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'projects' AND column_name = 'skills') THEN
+        ALTER TABLE projects ADD COLUMN skills TEXT;
+    END IF;
+
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'projects' AND column_name = 'experience_level') THEN
+        ALTER TABLE projects ADD COLUMN experience_level TEXT;
+    END IF;
+
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'projects' AND column_name = 'rating') THEN
+        ALTER TABLE projects ADD COLUMN rating INTEGER;
+    END IF;
+
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'projects' AND column_name = 'feedback') THEN
+        ALTER TABLE projects ADD COLUMN feedback TEXT;
+    END IF;
 END $$;
