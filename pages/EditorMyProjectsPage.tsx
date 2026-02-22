@@ -4,7 +4,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
 import { EditorLayout } from '../components/EditorLayout';
 import { Button } from '../components/Button';
-import { Briefcase, Calendar, DollarSign, Send } from 'lucide-react';
+import { Briefcase, Calendar, DollarSign, Send, MessageSquare } from 'lucide-react';
 import { Project } from '../types';
 
 const EditorMyProjectsPage: React.FC = () => {
@@ -86,9 +86,18 @@ const EditorMyProjectsPage: React.FC = () => {
                                     </span>
                                 </div>
                             </div>
-                            <span className="px-3 py-1 rounded-full text-xs font-bold uppercase bg-purple-500/20 text-purple-400 border border-purple-500/30 self-start">
-                                In Progress
-                            </span>
+                            <div className="flex flex-col items-end gap-2">
+                                <span className="px-3 py-1 rounded-full text-xs font-bold uppercase bg-purple-500/20 text-purple-400 border border-purple-500/30 self-start">
+                                    In Progress
+                                </span>
+                                <button 
+                                    onClick={() => alert('Chat feature coming soon!')}
+                                    className="flex items-center text-xs font-medium text-purple-400 hover:text-purple-300 transition-colors bg-purple-500/10 hover:bg-purple-500/20 px-3 py-1.5 rounded-lg border border-purple-500/20"
+                                >
+                                    <MessageSquare className="h-3 w-3 mr-1.5" />
+                                    Chat with Client
+                                </button>
+                            </div>
                         </div>
                         
                         <div className="bg-slate-900/50 p-4 rounded-lg border border-white/5 mb-6">

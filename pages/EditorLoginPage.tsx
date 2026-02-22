@@ -73,6 +73,8 @@ const EditorLoginPage: React.FC = () => {
         setError('Too many attempts. Please wait a minute before trying again.');
       } else if (err.message?.includes('Email not confirmed')) {
         setError('Please verify your email address. Check your inbox for the confirmation link.');
+      } else if (err.message?.includes('Invalid login credentials')) {
+        setError('Invalid email or password. Please check your credentials and try again.');
       } else {
         setError(err.message || 'Login failed');
       }

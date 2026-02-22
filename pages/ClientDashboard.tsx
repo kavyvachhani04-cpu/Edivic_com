@@ -5,7 +5,7 @@ import { supabase } from '../lib/supabase';
 import { ClientLayout } from '../components/ClientLayout';
 import { Button } from '../components/Button';
 import { LoadingScreen } from '../components/LoadingScreen';
-import { FileVideo, Clock, CheckCircle, User, Star, BadgeCheck, Zap } from 'lucide-react';
+import { FileVideo, Clock, CheckCircle, User, Star, BadgeCheck, Zap, MessageSquare } from 'lucide-react';
 
 interface EditorProfile {
     id: string;
@@ -13,6 +13,9 @@ interface EditorProfile {
     skills?: string;
     bio?: string;
     avgRating?: string;
+    profile_photo?: string;
+    hourly_rate?: string;
+    is_featured?: boolean;
 }
 
 const ClientDashboard: React.FC = () => {
@@ -68,25 +71,40 @@ const ClientDashboard: React.FC = () => {
           // Fetch editors
           const { data: editorsData, error } = await supabase
             .from('profiles')
-            .select('id, name, skills, bio')
+            .select('id, name, skills, bio, profile_photo, rating, hourly_rate, is_featured')
             .eq('role', 'editor')
-            .limit(9);
+            .order('is_featured', { ascending: false })
+            .order('created_at', { ascending: false });
           
           if (error) throw error;
 
-          // Fetch ratings for these editors
+          // Fetch ratings for these editors (if we want to calculate dynamically, or rely on stored rating)
+          // For now, let's use the stored rating if available, or calculate it.
+          // The requirement says "rating (default 0)" in profile.
+          // But we also have project ratings. Let's mix them or just use the profile one if updated.
+          // Let's stick to the previous logic of calculating it for freshness, but fallback to profile rating.
+          
           const editorsWithRatings = await Promise.all((editorsData || []).map(async (editor) => {
+              // If we want to calculate real-time rating from projects:
               const { data: ratings } = await supabase
                   .from('projects')
                   .select('rating')
                   .eq('editor_id', editor.id)
                   .not('rating', 'is', null);
               
-              const avgRating = ratings && ratings.length > 0
-                  ? ratings.reduce((acc, curr) => acc + (curr.rating || 0), 0) / ratings.length
-                  : 5.0; // Default to 5.0 if no ratings yet (new editor boost)
+              let avgRating = 0;
+              if (ratings && ratings.length > 0) {
+                  avgRating = ratings.reduce((acc, curr) => acc + (curr.rating || 0), 0) / ratings.length;
+              } else {
+                  // Fallback to stored rating or default
+                  avgRating = editor.rating || 0; 
+                  // If 0, maybe give a "New" boost or just show 0? 
+                  // The previous code gave 5.0 boost. Let's keep it 0 for "New" or 5.0 if we want to be nice.
+                  // Requirement says "rating (default 0)".
+                  if (avgRating === 0) avgRating = 5.0; // New editor boost
+              }
 
-              return { ...editor, avgRating: avgRating.toFixed(1) };
+              return { ...editor, avgRating: Number(avgRating).toFixed(1) };
           }));
 
           setEditors(editorsWithRatings);
@@ -170,14 +188,24 @@ const ClientDashboard: React.FC = () => {
             ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {editors.map((editor) => (
-                        <div key={editor.id} className="glass p-6 rounded-2xl border border-white/10 hover:border-gold/50 transition-all duration-300 group flex flex-col relative overflow-hidden">
+                        <div key={editor.id} className={`glass p-6 rounded-2xl border transition-all duration-300 group flex flex-col relative overflow-hidden ${editor.is_featured ? 'border-gold/50 shadow-[0_0_15px_rgba(255,215,0,0.1)]' : 'border-white/10 hover:border-gold/50'}`}>
                             {/* Decorative gradient blob */}
                             <div className="absolute -top-10 -right-10 w-32 h-32 bg-gold/5 rounded-full blur-3xl group-hover:bg-gold/10 transition-all"></div>
                             
-                            <div className="flex items-start gap-4 mb-4 relative z-10">
-                                <div className="h-14 w-14 rounded-xl bg-white/5 flex items-center justify-center border border-white/10 text-gold font-bold text-xl shadow-lg">
-                                    {editor.name.charAt(0).toUpperCase()}
+                            {editor.is_featured && (
+                                <div className="absolute top-0 right-0 bg-gold text-black text-[10px] font-bold px-2 py-1 rounded-bl-lg z-20 uppercase tracking-wider">
+                                    Featured
                                 </div>
+                            )}
+
+                            <div className="flex items-start gap-4 mb-4 relative z-10">
+                                {editor.profile_photo ? (
+                                    <img src={editor.profile_photo} alt={editor.name} className="h-14 w-14 rounded-xl object-cover border border-white/10 shadow-lg" />
+                                ) : (
+                                    <div className="h-14 w-14 rounded-xl bg-white/5 flex items-center justify-center border border-white/10 text-gold font-bold text-xl shadow-lg">
+                                        {editor.name.charAt(0).toUpperCase()}
+                                    </div>
+                                )}
                                 <div>
                                     <h3 className="font-bold text-white text-lg group-hover:text-gold transition-colors flex items-center gap-1">
                                         {editor.name}
@@ -185,12 +213,14 @@ const ClientDashboard: React.FC = () => {
                                     </h3>
                                     <div className="flex items-center text-xs text-gold mt-1">
                                         <Star className="h-3 w-3 fill-gold" />
-                                        <Star className="h-3 w-3 fill-gold" />
-                                        <Star className="h-3 w-3 fill-gold" />
-                                        <Star className="h-3 w-3 fill-gold" />
-                                        <Star className="h-3 w-3 fill-gold" />
-                                        <span className="text-slate-500 ml-1">({editor.avgRating || '5.0'})</span>
+                                        <span className="text-white ml-1 font-bold">{editor.avgRating || '5.0'}</span>
+                                        <span className="text-slate-500 ml-1">Rating</span>
                                     </div>
+                                    {editor.hourly_rate && (
+                                        <div className="text-xs text-slate-400 mt-1">
+                                            {editor.hourly_rate}/hr
+                                        </div>
+                                    )}
                                 </div>
                             </div>
                             
@@ -212,14 +242,23 @@ const ClientDashboard: React.FC = () => {
                                 </p>
                             </div>
 
-                            <Button 
-                                fullWidth 
-                                onClick={() => handleHireClick(editor.name)}
-                                className="relative z-10 bg-gold hover:bg-gold-dark text-black border-none font-bold shadow-lg shadow-gold/10 group-hover:shadow-gold/20"
-                            >
-                                <Zap className="h-4 w-4 mr-2" />
-                                Hire Now
-                            </Button>
+                            <div className="flex gap-3 mt-auto relative z-10">
+                                <Button 
+                                    fullWidth 
+                                    onClick={() => handleHireClick(editor.name)}
+                                    className="bg-gold hover:bg-gold-dark text-black border-none font-bold shadow-lg shadow-gold/10 group-hover:shadow-gold/20 flex-1"
+                                >
+                                    <Zap className="h-4 w-4 mr-2" />
+                                    Hire Now
+                                </Button>
+                                <button 
+                                    onClick={() => alert('Chat feature coming soon!')}
+                                    className="px-4 py-2 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 text-white transition-colors flex items-center justify-center"
+                                    title="Chat with Editor"
+                                >
+                                    <MessageSquare className="h-5 w-5" />
+                                </button>
+                            </div>
                         </div>
                     ))}
                 </div>

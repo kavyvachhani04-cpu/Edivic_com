@@ -78,7 +78,11 @@ const ClientSignupPage: React.FC = () => {
       const lowerMessage = message.toLowerCase();
 
       if (lowerMessage.includes('rate limit') || lowerMessage.includes('security purposes') || err.status === 429) {
-        setError('Too many signup attempts. Please wait 60 seconds before trying again, or use a different email address.');
+        if (lowerMessage.includes('email rate limit exceeded')) {
+             setError('Email rate limit exceeded. Please wait a few minutes before trying again.');
+        } else {
+             setError('Too many signup attempts. Please wait 60 seconds before trying again, or use a different email address.');
+        }
       } else if (lowerMessage.includes('already registered') || lowerMessage.includes('unique constraint')) {
         setError('This email is already registered. Please log in.');
       } else {

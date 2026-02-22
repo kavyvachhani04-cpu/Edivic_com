@@ -115,6 +115,19 @@ const AdminPanelPage: React.FC = () => {
     }
   };
 
+  const handleToggleFeatured = async (userId: string, currentStatus: boolean) => {
+    try {
+        const { error } = await supabase
+            .from('profiles')
+            .update({ is_featured: !currentStatus })
+            .eq('id', userId);
+        if (error) throw error;
+        fetchData();
+    } catch (error: any) {
+        alert('Error: ' + error.message);
+    }
+  };
+
   const handleDeleteInquiry = async (id: string) => {
     if (window.confirm('Delete this inquiry?')) {
         try {
@@ -303,13 +316,14 @@ const AdminPanelPage: React.FC = () => {
                     <tr>
                     <th className="px-6 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider">User</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider">Role</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider">Featured</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider">Joined</th>
                     <th className="px-6 py-3 text-right text-xs font-medium text-slate-400 uppercase tracking-wider">Actions</th>
                     </tr>
                 </thead>
                 <tbody className="bg-surface divide-y divide-white/10">
                     {loadingData ? (
-                        <tr><td colSpan={4} className="px-6 py-12 text-center text-slate-500">Loading users...</td></tr>
+                        <tr><td colSpan={5} className="px-6 py-12 text-center text-slate-500">Loading users...</td></tr>
                     ) : filteredUsers.length > 0 ? (
                     filteredUsers.map((u) => (
                         <tr key={u.id} className="hover:bg-white/5 transition-colors">
@@ -329,6 +343,16 @@ const AdminPanelPage: React.FC = () => {
                             {u.role || 'user'}
                             </span>
                         </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                            {u.role === 'editor' && (
+                                <button 
+                                    onClick={() => handleToggleFeatured(u.id, u.is_featured)}
+                                    className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full cursor-pointer transition-colors ${u.is_featured ? 'bg-gold/20 text-gold border border-gold/30' : 'bg-slate-700 text-slate-400 border border-slate-600'}`}
+                                >
+                                    {u.is_featured ? 'Featured' : 'Standard'}
+                                </button>
+                            )}
+                        </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-400">
                             {u.created_at ? new Date(u.created_at).toLocaleDateString() : '-'}
                         </td>
@@ -342,7 +366,7 @@ const AdminPanelPage: React.FC = () => {
                         </tr>
                     ))
                     ) : (
-                        <tr><td colSpan={4} className="px-6 py-12 text-center text-slate-500">No users found.</td></tr>
+                        <tr><td colSpan={5} className="px-6 py-12 text-center text-slate-500">No users found.</td></tr>
                     )}
                 </tbody>
                 </table>
