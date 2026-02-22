@@ -4,7 +4,7 @@ import { supabase } from '../lib/supabase';
 import { ClientLayout } from '../components/ClientLayout';
 import { Button } from '../components/Button';
 import { LoadingScreen } from '../components/LoadingScreen';
-import { User, Star, BadgeCheck, Zap, MessageSquare, Globe, Clock, Monitor, Wrench } from 'lucide-react';
+import { User, Star, BadgeCheck, Zap, MessageSquare, Globe, Clock, Monitor, Wrench, Play, ThumbsUp, Calendar, CheckCircle } from 'lucide-react';
 
 interface EditorProfile {
     id: string;
@@ -34,6 +34,24 @@ const ViewEditorProfilePage: React.FC = () => {
     const fetchEditorProfile = async () => {
         setLoading(true);
         try {
+            // Check if it's the fake editor
+            if (id === 'fake-editor-1') {
+                setEditor({
+                    id: 'fake-editor-1',
+                    name: 'Alex Creative (Demo)',
+                    skills: 'Premiere Pro, After Effects, Sound Design, Color Grading',
+                    bio: 'Award-winning video editor with 5+ years of experience in commercial and documentary editing. I specialize in high-energy cuts and cinematic storytelling.',
+                    rating: 4.9,
+                    hourly_rate: '$50',
+                    portfolio_url: 'https://youtube.com',
+                    primary_software: 'Adobe Premiere Pro',
+                    years_experience: '5 Years',
+                    profile_photo: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=774&q=80'
+                });
+                setLoading(false);
+                return;
+            }
+
             const { data, error } = await supabase
                 .from('profiles')
                 .select('*')
@@ -53,10 +71,23 @@ const ViewEditorProfilePage: React.FC = () => {
     if (loading) return <LoadingScreen />;
     if (!editor) return null;
 
+    // Placeholder Data for UI
+    const portfolioItems = [
+        { id: 1, title: 'Tech Review 2025', category: 'YouTube', image: 'https://images.unsplash.com/photo-1492691527719-9d1e07e534b4?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80' },
+        { id: 2, title: 'Travel Vlog: Japan', category: 'Vlog', image: 'https://images.unsplash.com/photo-1492633423870-43d1cd2775eb?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80' },
+        { id: 3, title: 'Corporate Promo', category: 'Commercial', image: 'https://images.unsplash.com/photo-1559136555-9303baea8ebd?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80' },
+    ];
+
+    const reviews = [
+        { id: 1, client: 'Sarah J.', rating: 5, text: 'Absolutely amazing work! Delivered ahead of schedule and the quality was top notch.', date: '2 days ago' },
+        { id: 2, client: 'Mike T.', rating: 5, text: 'Great communication and understood the vision perfectly.', date: '1 week ago' },
+    ];
+
     return (
         <ClientLayout title="Editor Profile" subtitle={`View details for ${editor.name}`}>
-            <div className="max-w-4xl mx-auto">
-                <div className="glass p-8 rounded-3xl border border-white/10 relative overflow-hidden">
+            <div className="max-w-5xl mx-auto">
+                {/* Header Card */}
+                <div className="glass p-8 rounded-3xl border border-white/10 relative overflow-hidden mb-8">
                     <div className="absolute -top-24 -right-24 w-64 h-64 bg-gold/5 rounded-full blur-3xl"></div>
                     
                     <div className="flex flex-col md:flex-row gap-8 items-start relative z-10">
@@ -70,79 +101,73 @@ const ViewEditorProfilePage: React.FC = () => {
                                 </div>
                             )}
                             
-                            <div className="w-full space-y-4">
-                                <div className="glass p-4 rounded-2xl border border-white/5 text-center">
+                            <div className="w-full grid grid-cols-2 gap-3">
+                                <div className="glass p-3 rounded-2xl border border-white/5 text-center">
                                     <div className="flex items-center justify-center text-gold mb-1">
-                                        <Star className="h-5 w-5 fill-gold" />
-                                        <span className="text-xl font-bold ml-2 text-white">{Number(editor.rating || 5.0).toFixed(1)}</span>
+                                        <Star className="h-4 w-4 fill-gold" />
+                                        <span className="text-lg font-bold ml-1 text-white">{Number(editor.rating || 5.0).toFixed(1)}</span>
                                     </div>
-                                    <p className="text-xs text-slate-500 uppercase tracking-widest">Average Rating</p>
+                                    <p className="text-[10px] text-slate-500 uppercase tracking-widest">Rating</p>
                                 </div>
-                                
-                                {editor.hourly_rate && (
-                                    <div className="glass p-4 rounded-2xl border border-white/5 text-center">
-                                        <p className="text-xl font-bold text-white mb-1">{editor.hourly_rate}/hr</p>
-                                        <p className="text-xs text-slate-500 uppercase tracking-widest">Starting Rate</p>
-                                    </div>
-                                )}
+                                <div className="glass p-3 rounded-2xl border border-white/5 text-center">
+                                    <p className="text-lg font-bold text-white mb-1">{editor.hourly_rate || '$30'}/hr</p>
+                                    <p className="text-[10px] text-slate-500 uppercase tracking-widest">Rate</p>
+                                </div>
                             </div>
                         </div>
 
                         {/* Right Side: Details */}
-                        <div className="flex-1">
+                        <div className="flex-1 w-full">
                             <div className="flex flex-wrap items-center gap-3 mb-4">
                                 <h1 className="text-4xl font-bold text-white font-display">{editor.name}</h1>
                                 <BadgeCheck className="h-8 w-8 text-blue-400" />
+                                {editor.id === 'fake-editor-1' && (
+                                    <span className="px-2 py-1 bg-gold text-black text-xs font-bold rounded uppercase">Featured</span>
+                                )}
                             </div>
                             
                             <p className="text-slate-400 text-lg mb-8 leading-relaxed">
                                 {editor.bio || "Professional video editor with a passion for storytelling. I specialize in creating high-impact content that resonates with audiences."}
                             </p>
 
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-                                {editor.primary_software && (
-                                    <div className="flex items-center gap-3 text-slate-300">
-                                        <div className="p-2 bg-white/5 rounded-lg border border-white/10 text-gold">
-                                            <Monitor className="h-5 w-5" />
-                                        </div>
-                                        <div>
-                                            <p className="text-[10px] text-slate-500 uppercase tracking-wider">Primary Software</p>
-                                            <p className="font-medium">{editor.primary_software}</p>
-                                        </div>
+                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
+                                <div className="flex items-center gap-3 text-slate-300 bg-white/5 p-3 rounded-xl border border-white/5">
+                                    <div className="p-2 bg-slate-800 rounded-lg text-gold">
+                                        <Monitor className="h-4 w-4" />
                                     </div>
-                                )}
-                                {editor.years_experience && (
-                                    <div className="flex items-center gap-3 text-slate-300">
-                                        <div className="p-2 bg-white/5 rounded-lg border border-white/10 text-gold">
-                                            <Clock className="h-5 w-5" />
-                                        </div>
-                                        <div>
-                                            <p className="text-[10px] text-slate-500 uppercase tracking-wider">Experience</p>
-                                            <p className="font-medium">{editor.years_experience}</p>
-                                        </div>
+                                    <div>
+                                        <p className="text-[10px] text-slate-500 uppercase tracking-wider">Software</p>
+                                        <p className="font-medium text-sm">{editor.primary_software || 'Premiere Pro'}</p>
                                     </div>
-                                )}
-                                {editor.portfolio_url && (
-                                    <div className="flex items-center gap-3 text-slate-300">
-                                        <div className="p-2 bg-white/5 rounded-lg border border-white/10 text-gold">
-                                            <Globe className="h-5 w-5" />
-                                        </div>
-                                        <div>
-                                            <p className="text-[10px] text-slate-500 uppercase tracking-wider">Portfolio</p>
-                                            <a href={editor.portfolio_url} target="_blank" rel="noopener noreferrer" className="font-medium text-gold hover:underline">View Work</a>
-                                        </div>
+                                </div>
+                                <div className="flex items-center gap-3 text-slate-300 bg-white/5 p-3 rounded-xl border border-white/5">
+                                    <div className="p-2 bg-slate-800 rounded-lg text-gold">
+                                        <Clock className="h-4 w-4" />
                                     </div>
-                                )}
+                                    <div>
+                                        <p className="text-[10px] text-slate-500 uppercase tracking-wider">Experience</p>
+                                        <p className="font-medium text-sm">{editor.years_experience || '3+ Years'}</p>
+                                    </div>
+                                </div>
+                                <div className="flex items-center gap-3 text-slate-300 bg-white/5 p-3 rounded-xl border border-white/5">
+                                    <div className="p-2 bg-slate-800 rounded-lg text-gold">
+                                        <CheckCircle className="h-4 w-4" />
+                                    </div>
+                                    <div>
+                                        <p className="text-[10px] text-slate-500 uppercase tracking-wider">Projects</p>
+                                        <p className="font-medium text-sm">12 Completed</p>
+                                    </div>
+                                </div>
                             </div>
 
                             {editor.skills && (
-                                <div className="mb-10">
-                                    <h3 className="text-sm font-bold text-slate-500 uppercase tracking-widest mb-4 flex items-center gap-2">
-                                        <Wrench className="h-4 w-4" /> Expertise & Skills
+                                <div className="mb-8">
+                                    <h3 className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-3 flex items-center gap-2">
+                                        <Wrench className="h-3 w-3" /> Skills
                                     </h3>
                                     <div className="flex flex-wrap gap-2">
                                         {editor.skills.split(',').map((skill, idx) => (
-                                            <span key={idx} className="px-4 py-2 bg-white/5 border border-white/10 rounded-xl text-xs text-slate-200 font-medium">
+                                            <span key={idx} className="px-3 py-1.5 bg-white/5 border border-white/10 rounded-lg text-xs text-slate-300 font-medium hover:bg-white/10 transition-colors cursor-default">
                                                 {skill.trim()}
                                             </span>
                                         ))}
@@ -150,10 +175,10 @@ const ViewEditorProfilePage: React.FC = () => {
                                 </div>
                             )}
 
-                            <div className="flex flex-col sm:flex-row gap-4 pt-8 border-t border-white/5">
+                            <div className="flex flex-col sm:flex-row gap-4 pt-6 border-t border-white/5">
                                 <Button 
                                     size="lg" 
-                                    className="bg-gold hover:bg-gold-dark text-black border-none font-bold px-8 flex-1"
+                                    className="bg-gold hover:bg-gold-dark text-black border-none font-bold px-8 flex-1 shadow-lg shadow-gold/10"
                                     onClick={() => navigate(`/client/post-project?hireName=${encodeURIComponent(editor.name)}&hireId=${editor.id}`)}
                                 >
                                     <Zap className="h-5 w-5 mr-2" />
@@ -166,10 +191,64 @@ const ViewEditorProfilePage: React.FC = () => {
                                     onClick={() => alert('Chat feature coming soon!')}
                                 >
                                     <MessageSquare className="h-5 w-5 mr-2" />
-                                    Chat with Editor
+                                    Chat
                                 </Button>
                             </div>
                         </div>
+                    </div>
+                </div>
+
+                {/* Portfolio Section */}
+                <div className="mb-8">
+                    <div className="flex items-center justify-between mb-6">
+                        <h2 className="text-2xl font-bold text-white font-display">Featured Work</h2>
+                        {editor.portfolio_url && (
+                            <a href={editor.portfolio_url} target="_blank" rel="noopener noreferrer" className="text-sm text-gold hover:underline flex items-center gap-1">
+                                <Globe className="h-4 w-4" /> View Full Portfolio
+                            </a>
+                        )}
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        {portfolioItems.map((item) => (
+                            <div key={item.id} className="group relative aspect-video rounded-2xl overflow-hidden bg-slate-800 border border-white/10 cursor-pointer">
+                                <img src={item.image} alt={item.title} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110 opacity-60 group-hover:opacity-40" />
+                                <div className="absolute inset-0 flex items-center justify-center">
+                                    <div className="h-12 w-12 rounded-full bg-white/10 backdrop-blur-sm flex items-center justify-center border border-white/20 group-hover:scale-110 transition-transform">
+                                        <Play className="h-5 w-5 text-white fill-white ml-1" />
+                                    </div>
+                                </div>
+                                <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/80 to-transparent">
+                                    <p className="text-xs text-gold font-bold uppercase tracking-wider mb-1">{item.category}</p>
+                                    <h3 className="text-white font-bold">{item.title}</h3>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+
+                {/* Reviews Section */}
+                <div>
+                    <h2 className="text-2xl font-bold text-white font-display mb-6">Client Reviews</h2>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        {reviews.map((review) => (
+                            <div key={review.id} className="glass p-6 rounded-2xl border border-white/5">
+                                <div className="flex items-center justify-between mb-4">
+                                    <div className="flex items-center gap-2">
+                                        <div className="h-8 w-8 rounded-full bg-slate-700 flex items-center justify-center text-xs font-bold text-white">
+                                            {review.client.charAt(0)}
+                                        </div>
+                                        <span className="font-bold text-white text-sm">{review.client}</span>
+                                    </div>
+                                    <div className="flex items-center gap-1">
+                                        {[...Array(5)].map((_, i) => (
+                                            <Star key={i} className={`h-3 w-3 ${i < review.rating ? 'text-gold fill-gold' : 'text-slate-700'}`} />
+                                        ))}
+                                    </div>
+                                </div>
+                                <p className="text-slate-400 text-sm italic mb-3">"{review.text}"</p>
+                                <p className="text-xs text-slate-600">{review.date}</p>
+                            </div>
+                        ))}
                     </div>
                 </div>
             </div>
