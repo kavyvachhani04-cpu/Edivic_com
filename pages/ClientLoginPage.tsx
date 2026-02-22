@@ -45,32 +45,30 @@ const ClientLoginPage: React.FC = () => {
       if (authError) throw authError;
 
       // Check role to prevent cross-role login
-      const role = data.user?.user_metadata?.role;
-      const userEmail = data.user?.email;
+      // const role = data.user?.user_metadata?.role;
+      // const userEmail = data.user?.email;
 
-      // Allow admin to login from here
-      if (userEmail === 'admin@gmail.com') {
-         if (data.session) {
-            const timeout = new Promise((resolve) => setTimeout(resolve, 3000));
-            await Promise.race([refreshUser(data.session), timeout]);
-            navigate('/admin/dashboard');
-            return;
-         }
-      }
-
-      if (role === 'editor') {
-        await supabase.auth.signOut();
-        setError('This email is registered as an Editor. Please sign in on the Editor Login page.');
-        setLoading(false);
-        return;
-      }
+      // Logic moved to post-login role check below
 
       if (data.session) {
         // Race refreshUser with a timeout to prevent hanging
         const timeout = new Promise((resolve) => setTimeout(resolve, 3000));
-        await Promise.race([refreshUser(data.session), timeout]);
+        const user = await Promise.race([refreshUser(data.session), timeout]) as any;
         
-        navigate('/dashboard-client');
+        if (user) {
+            if (user.role === 'client') {
+                navigate('/dashboard-client');
+            } else if (user.role === 'admin') {
+                navigate('/admin/dashboard');
+            } else if (user.role === 'editor') {
+                navigate('/dashboard-editor');
+            } else {
+                navigate('/');
+            }
+        } else {
+             // Fallback
+             navigate('/dashboard-client');
+        }
       } else {
         throw new Error('No session created');
       }

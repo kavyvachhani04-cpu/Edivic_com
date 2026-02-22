@@ -41,20 +41,28 @@ const EditorLoginPage: React.FC = () => {
       if (authError) throw authError;
 
       // Check role to prevent cross-role login
-      const role = data.user?.user_metadata?.role;
-      if (role === 'client') {
-        await supabase.auth.signOut();
-        setError('This email is registered as a Client. Please sign in on the Client Login page.');
-        setLoading(false);
-        return;
-      }
+      // const role = data.user?.user_metadata?.role;
+      // Logic moved to post-login role check below
 
       if (data.session) {
         // Race refreshUser with a timeout to prevent hanging
         const timeout = new Promise((resolve) => setTimeout(resolve, 3000));
-        await Promise.race([refreshUser(data.session), timeout]);
+        const user = await Promise.race([refreshUser(data.session), timeout]) as any;
         
-        navigate('/dashboard-editor');
+        if (user) {
+            if (user.role === 'editor') {
+                navigate('/dashboard-editor');
+            } else if (user.role === 'admin') {
+                navigate('/admin/dashboard');
+            } else if (user.role === 'client') {
+                navigate('/dashboard-client');
+            } else {
+                navigate('/');
+            }
+        } else {
+             // Fallback if user object isn't returned (timeout)
+             navigate('/dashboard-editor');
+        }
       } else {
         throw new Error('No session created');
       }

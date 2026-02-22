@@ -25,13 +25,18 @@ const AdminLoginPage: React.FC = () => {
 
       if (authError) throw authError;
 
-      // Enforce admin check by email for this demo
-      if (data.user?.email === 'admin@gmail.com') {
-          navigate('/admin/dashboard');
+      if (data.session) {
+        const user = await refreshUser(data.session);
+        
+        if (user?.role === 'admin') {
+            navigate('/admin/dashboard');
+        } else {
+            // If not admin, sign them out and show error
+            await supabase.auth.signOut();
+            setError('Access denied: You do not have administrator privileges.');
+        }
       } else {
-          // If not admin, sign them out and show error
-          await supabase.auth.signOut();
-          setError('Access denied: You do not have administrator privileges.');
+         throw new Error('No session created');
       }
     } catch (err: any) {
       setError(err.message || 'Authentication failed');

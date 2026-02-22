@@ -8,6 +8,7 @@ import AdminLoginPage from './pages/AdminLoginPage';
 import AdminPanelPage from './pages/AdminPanelPage';
 import { AuthProvider } from './contexts/AuthContext';
 import { SubscriptionGuard } from './components/SubscriptionGuard';
+import { RoleGuard } from './components/RoleGuard';
 
 // Client Pages
 import ClientSignupPage from './pages/ClientSignupPage';
@@ -63,27 +64,27 @@ const App: React.FC = () => {
             {/* Client Routes */}
             <Route path="/login-client" element={<ClientLoginPage />} />
             <Route path="/signup-client" element={<ClientSignupPage />} />
-            <Route path="/dashboard-client" element={<ClientDashboard />} />
-            <Route path="/client/post-project" element={<ClientPostProjectPage />} />
-            <Route path="/client/my-projects" element={<ClientMyProjectsPage />} />
-            <Route path="/client/completed-projects" element={<ClientCompletedProjectsPage />} />
-            <Route path="/client/profile" element={<ClientProfilePage />} />
+            <Route path="/dashboard-client" element={<RoleGuard allowedRoles={['client']}><ClientDashboard /></RoleGuard>} />
+            <Route path="/client/post-project" element={<RoleGuard allowedRoles={['client']}><ClientPostProjectPage /></RoleGuard>} />
+            <Route path="/client/my-projects" element={<RoleGuard allowedRoles={['client']}><ClientMyProjectsPage /></RoleGuard>} />
+            <Route path="/client/completed-projects" element={<RoleGuard allowedRoles={['client']}><ClientCompletedProjectsPage /></RoleGuard>} />
+            <Route path="/client/profile" element={<RoleGuard allowedRoles={['client']}><ClientProfilePage /></RoleGuard>} />
 
             {/* Editor Routes */}
             <Route path="/login-editor" element={<EditorLoginPage />} />
             <Route path="/signup-editor" element={<EditorSignupPage />} />
             
             {/* Protected Editor Routes */}
-            <Route path="/editor/subscription" element={<SubscriptionGuard><EditorSubscriptionPage /></SubscriptionGuard>} />
-            <Route path="/dashboard-editor" element={<SubscriptionGuard><EditorDashboard /></SubscriptionGuard>} />
-            <Route path="/editor/find-projects" element={<SubscriptionGuard><EditorFindProjectsPage /></SubscriptionGuard>} />
-            <Route path="/editor/my-projects" element={<SubscriptionGuard><EditorMyProjectsPage /></SubscriptionGuard>} />
-            <Route path="/editor/completed-projects" element={<SubscriptionGuard><EditorCompletedProjectsPage /></SubscriptionGuard>} />
-            <Route path="/editor/profile" element={<SubscriptionGuard><EditorProfilePage /></SubscriptionGuard>} />
+            <Route path="/editor/subscription" element={<RoleGuard allowedRoles={['editor']}><SubscriptionGuard><EditorSubscriptionPage /></SubscriptionGuard></RoleGuard>} />
+            <Route path="/dashboard-editor" element={<RoleGuard allowedRoles={['editor']}><SubscriptionGuard><EditorDashboard /></SubscriptionGuard></RoleGuard>} />
+            <Route path="/editor/find-projects" element={<RoleGuard allowedRoles={['editor']}><SubscriptionGuard><EditorFindProjectsPage /></SubscriptionGuard></RoleGuard>} />
+            <Route path="/editor/my-projects" element={<RoleGuard allowedRoles={['editor']}><SubscriptionGuard><EditorMyProjectsPage /></SubscriptionGuard></RoleGuard>} />
+            <Route path="/editor/completed-projects" element={<RoleGuard allowedRoles={['editor']}><SubscriptionGuard><EditorCompletedProjectsPage /></SubscriptionGuard></RoleGuard>} />
+            <Route path="/editor/profile" element={<RoleGuard allowedRoles={['editor']}><SubscriptionGuard><EditorProfilePage /></SubscriptionGuard></RoleGuard>} />
             
             {/* Admin Routes */}
             <Route path="/admin/login" element={<AdminLoginPage />} />
-            <Route path="/admin/dashboard" element={<AdminPanelPage />} />
+            <Route path="/admin/dashboard" element={<RoleGuard allowedRoles={['admin']}><AdminPanelPage /></RoleGuard>} />
           </Routes>
         </Layout>
       </Router>

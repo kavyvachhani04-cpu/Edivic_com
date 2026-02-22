@@ -8,7 +8,7 @@ interface AuthContextType {
   user: User | null;
   loading: boolean;
   isAdmin: boolean;
-  refreshUser: (session?: any) => Promise<void>;
+  refreshUser: (session?: any) => Promise<User | null>;
   updateUser: (updates: Partial<User>) => void;
 }
 
@@ -77,7 +77,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
   };
 
-  const refreshUser = async (session?: any) => {
+  const refreshUser = async (session?: any): Promise<User | null> => {
     try {
       // Add timeout to getSession as well
       const getSessionWithTimeout = async () => {
@@ -100,7 +100,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                     await supabase.auth.signOut();
                     setUser(null);
                     setLoading(false);
-                    return;
+                    return null;
                 }
                 // For other errors, just log and continue as guest
                 console.warn('Session fetch error:', result.error.message);
@@ -116,12 +116,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (currentSession?.user) {
         const mappedUser = await mapSupabaseUser(currentSession.user);
         setUser(mappedUser);
+        return mappedUser;
       } else {
         setUser(null);
+        return null;
       }
     } catch (error) {
       console.error('Error in refreshUser:', error);
       setUser(null);
+      return null;
     } finally {
       setLoading(false);
     }
