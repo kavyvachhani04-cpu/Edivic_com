@@ -34,17 +34,26 @@ const ClientSignupPage: React.FC = () => {
 
       // 2. Profile creation
       if (data.user) {
-        const { error: profileError } = await supabase
-          .from('profiles')
-          .insert([{ 
-              id: data.user.id, 
-              name: name, 
-              email: email, 
-              role: 'client', 
-              created_at: new Date().toISOString()
-            }]);
+        // Check if profile exists first to avoid duplicate key error if user exists but session was null
+        const { data: existingProfile } = await supabase
+            .from('profiles')
+            .select('id')
+            .eq('id', data.user.id)
+            .single();
 
-        if (profileError) console.warn('Profile creation warning:', profileError.message);
+        if (!existingProfile) {
+            const { error: profileError } = await supabase
+            .from('profiles')
+            .insert([{ 
+                id: data.user.id, 
+                name: name, 
+                email: email, 
+                role: 'client', 
+                created_at: new Date().toISOString()
+                }]);
+
+            if (profileError) console.warn('Profile creation warning:', profileError.message);
+        }
       }
 
       if (data.session) {
@@ -52,8 +61,13 @@ const ClientSignupPage: React.FC = () => {
         navigate('/dashboard-client');
       } else {
         // Session is null, meaning email confirmation is required
-        setError('Account created! Please check your email to confirm your account before logging in.');
-        setLoading(false); // Stop loading state so user can see message
+        // Check if user is actually new or just unconfirmed
+        if (data.user && data.user.identities && data.user.identities.length === 0) {
+             setError('This email is already registered. Please log in.');
+        } else {
+             setError('Account created! Please check your email to confirm your account before logging in.');
+        }
+        setLoading(false); 
         return; 
       }
 
@@ -64,7 +78,10 @@ const ClientSignupPage: React.FC = () => {
       const lowerMessage = message.toLowerCase();
 
       if (lowerMessage.includes('rate limit') || lowerMessage.includes('security purposes') || err.status === 429) {
-        setError('Too many attempts. Please wait a few minutes or check your email for a confirmation link.');
+        // Allow retry after a short delay visually, but explain the situation
+        setError('Security check: Please wait 30 seconds before trying again, or try a different email.');
+      } else if (lowerMessage.includes('already registered') || lowerMessage.includes('unique constraint')) {
+        setError('This email is already registered. Please log in.');
       } else {
         setError(message);
       }

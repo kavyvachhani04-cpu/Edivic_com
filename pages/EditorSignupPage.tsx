@@ -32,17 +32,26 @@ const EditorSignupPage: React.FC = () => {
       if (authError) throw authError;
 
       if (data.user) {
-        const { error: profileError } = await supabase
-          .from('profiles')
-          .insert([{ 
-              id: data.user.id, 
-              name: name, 
-              email: email, 
-              role: 'editor', 
-              created_at: new Date().toISOString()
-            }]);
+        // Check if profile exists first
+        const { data: existingProfile } = await supabase
+            .from('profiles')
+            .select('id')
+            .eq('id', data.user.id)
+            .single();
 
-        if (profileError) console.warn('Profile creation warning:', profileError.message);
+        if (!existingProfile) {
+            const { error: profileError } = await supabase
+            .from('profiles')
+            .insert([{ 
+                id: data.user.id, 
+                name: name, 
+                email: email, 
+                role: 'editor', 
+                created_at: new Date().toISOString()
+                }]);
+
+            if (profileError) console.warn('Profile creation warning:', profileError.message);
+        }
       }
 
       if (data.session) {
@@ -50,7 +59,11 @@ const EditorSignupPage: React.FC = () => {
         navigate('/dashboard-editor');
       } else {
         // Session is null, meaning email confirmation is required
-        setError('Account created! Please check your email to confirm your account before logging in.');
+        if (data.user && data.user.identities && data.user.identities.length === 0) {
+             setError('This email is already registered. Please log in.');
+        } else {
+             setError('Account created! Please check your email to confirm your account before logging in.');
+        }
         setLoading(false);
         return;
       }
@@ -62,7 +75,9 @@ const EditorSignupPage: React.FC = () => {
       const lowerMessage = message.toLowerCase();
 
       if (lowerMessage.includes('rate limit') || lowerMessage.includes('security purposes') || err.status === 429) {
-        setError('Too many attempts. Please wait a few minutes or check your email for a confirmation link.');
+        setError('Security check: Please wait 30 seconds before trying again, or try a different email.');
+      } else if (lowerMessage.includes('already registered') || lowerMessage.includes('unique constraint')) {
+        setError('This email is already registered. Please log in.');
       } else {
         setError(message);
       }
