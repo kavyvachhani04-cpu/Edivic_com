@@ -136,11 +136,6 @@ const ClientFindEditorsPage: React.FC = () => {
       }
   };
 
-  const handleHireClick = (editor: EditorProfile) => {
-      const editorName = editor.full_name || editor.name || (editor.email ? editor.email.split('@')[0] : 'Editor');
-      navigate(`/client/post-project?hireName=${encodeURIComponent(editorName)}&hireId=${editor.id}`);
-  };
-
   const filteredEditors = editors.filter(editor => {
       const editorName = String(editor.full_name || editor.name || '').toLowerCase();
       const matchesSearch = editorName.includes(searchTerm.toLowerCase()) || 
@@ -198,7 +193,7 @@ const ClientFindEditorsPage: React.FC = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {filteredEditors.map((editor) => {
                     // Robust property access to prevent crashes
-                    const editorName = String(editor.full_name || editor.name || (editor.email ? editor.email.split('@')[0] : 'Editor'));
+                    const editorName = String(editor.full_name || editor.name || 'Anonymous Editor');
                     const editorPhoto = editor.profile_image_url || editor.profile_photo;
                     const editorRate = editor.price_per_hour ? `$${editor.price_per_hour}` : (editor.hourly_rate || '$0');
                     const skillsArr = Array.isArray(editor.skills) ? editor.skills : (typeof editor.skills === 'string' ? editor.skills.split(',') : []);
@@ -260,22 +255,16 @@ const ClientFindEditorsPage: React.FC = () => {
                             <p className="text-sm text-slate-400 line-clamp-3 leading-relaxed">
                                 {editor.bio || "Professional video editor ready to take on your project. Experienced in various editing styles and software."}
                             </p>
-                            <button 
-                                onClick={() => navigate(`/client/editor/${editor.id}`)}
-                                className="text-xs text-gold mt-2 hover:underline font-medium"
-                            >
-                                View Full Profile
-                            </button>
                         </div>
 
                         <div className="flex gap-3 mt-auto relative z-10">
                             <Button 
                                 fullWidth 
-                                onClick={() => handleHireClick(editor)}
+                                onClick={() => navigate(`/client/editor/${editor.id}`)}
                                 className="bg-gold hover:bg-gold-dark text-black border-none font-bold shadow-lg shadow-gold/10 group-hover:shadow-gold/20 flex-1"
                             >
-                                <Zap className="h-4 w-4 mr-2" />
-                                Hire Now
+                                <User className="h-4 w-4 mr-2" />
+                                View Profile
                             </Button>
                             <button 
                                 onClick={() => navigate('/client/chat')}
