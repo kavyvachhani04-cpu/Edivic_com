@@ -154,7 +154,7 @@ const ViewEditorProfilePage: React.FC = () => {
                                 <Button 
                                     size="lg" 
                                     className="bg-gold hover:bg-gold-dark text-black border-none font-bold px-8 flex-1"
-                                    onClick={() => navigate(`/client/post-project?hire=${encodeURIComponent(editor.name)}`)}
+                                    onClick={() => navigate(`/client/post-project?hireName=${encodeURIComponent(editor.name)}&hireId=${editor.id}`)}
                                 >
                                     <Zap className="h-5 w-5 mr-2" />
                                     Hire {editor.name.split(' ')[0]}

@@ -23,7 +23,8 @@ const ClientPostProjectPage: React.FC = () => {
       experience_level: 'Intermediate'
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const hireName = searchParams.get('hire');
+  const hireName = searchParams.get('hireName');
+  const hireId = searchParams.get('hireId');
 
   useEffect(() => {
     if (!loading) {
@@ -52,20 +53,31 @@ const ClientPostProjectPage: React.FC = () => {
         ? `${formData.description}\n\nReference Material: ${formData.reference}`
         : formData.description;
 
-      const { error } = await supabase.from('projects').insert([
-        {
+      const projectData: any = {
           client_id: user.id,
-          // client_name: user.name, // Removed to fix schema error
-          title: formData.title, // Reverted to title
-          description: descriptionWithRef, // Reverted to description
+          title: formData.title,
+          description: descriptionWithRef,
           budget: formData.budget,
           deadline: formData.deadline,
-          category: formData.category, // Added back
+          category: formData.category,
           skills: formData.skills,
           experience_level: formData.experience_level,
-          status: 'pending' // Reverted to pending
-        }
-      ]);
+          status: 'pending'
+      };
+
+      if (hireId) {
+          projectData.editor_id = hireId;
+          // If we assign an editor directly, we might want to keep it 'pending' until they accept, 
+          // or set to 'assigned' if that's the flow. Let's keep 'pending' but targeted.
+          // But wait, if it's pending, it shows up in public list.
+          // We should probably set status to 'assigned' so it shows up in their "My Projects" or similar?
+          // Or add a new status 'offered'.
+          // For simplicity, let's use 'pending' and rely on the editor_id being set to filter visibility.
+          // However, existing logic filters by status='pending'.
+          // If I set editor_id, it's a private offer.
+      }
+
+      const { error } = await supabase.from('projects').insert([projectData]);
       
       if (error) throw error;
       

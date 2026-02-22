@@ -112,7 +112,19 @@ const ClientDashboard: React.FC = () => {
               return { ...editor, avgRating: Number(avgRating).toFixed(1) };
           }));
 
-          setEditors(editorsWithRatings);
+          // Add fake editor
+          const fakeEditor: EditorProfile = {
+              id: 'fake-editor-1',
+              name: 'Alex Creative (Demo)',
+              skills: 'Premiere Pro, After Effects, Sound Design',
+              bio: 'Award-winning video editor with 5+ years of experience in commercial and documentary editing. This is a demo profile.',
+              avgRating: '4.9',
+              hourly_rate: '$50',
+              is_featured: true,
+              profile_photo: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=774&q=80'
+          };
+          
+          setEditors([fakeEditor, ...editorsWithRatings]);
       } catch (e) {
           console.error('Error fetching editors:', e);
       } finally {
@@ -120,8 +132,8 @@ const ClientDashboard: React.FC = () => {
       }
   };
 
-  const handleHireClick = (editorName: string) => {
-      navigate(`/client/post-project?hire=${encodeURIComponent(editorName)}`);
+  const handleHireClick = (editor: EditorProfile) => {
+      navigate(`/client/post-project?hireName=${encodeURIComponent(editor.name)}&hireId=${editor.id}`);
   };
 
   if (loading || !user) return <LoadingScreen />;
@@ -174,9 +186,14 @@ const ClientDashboard: React.FC = () => {
                     </h2>
                     <p className="text-slate-400 text-sm mt-1">Discover top-rated talent for your next project</p>
                 </div>
-                <Button variant="outline" size="sm" onClick={() => navigate('/client/post-project')} className="border-white/20 hover:border-gold hover:text-gold text-slate-300">
-                    Post General Project
-                </Button>
+                <div className="flex gap-2">
+                    <Button variant="outline" size="sm" onClick={() => navigate('/client/find-editors')} className="border-white/20 hover:border-gold hover:text-gold text-slate-300">
+                        View All Editors
+                    </Button>
+                    <Button variant="outline" size="sm" onClick={() => navigate('/client/post-project')} className="border-white/20 hover:border-gold hover:text-gold text-slate-300">
+                        Post General Project
+                    </Button>
+                </div>
             </div>
 
             {loadingEditors ? (
@@ -259,7 +276,7 @@ const ClientDashboard: React.FC = () => {
                             <div className="flex gap-3 mt-auto relative z-10">
                                 <Button 
                                     fullWidth 
-                                    onClick={() => handleHireClick(editor.name)}
+                                    onClick={() => handleHireClick(editor)}
                                     className="bg-gold hover:bg-gold-dark text-black border-none font-bold shadow-lg shadow-gold/10 group-hover:shadow-gold/20 flex-1"
                                 >
                                     <Zap className="h-4 w-4 mr-2" />

@@ -43,7 +43,8 @@ const EditorFindProjectsPage: React.FC = () => {
         
         if (error) throw error;
         
-        const fetchedProjects = projectData || [];
+        // Filter projects: Show public projects (editor_id is null) OR projects assigned to me
+        const fetchedProjects = (projectData || []).filter(p => !p.editor_id || p.editor_id === user.id);
         setProjects(fetchedProjects);
 
         if (fetchedProjects.length > 0) {
