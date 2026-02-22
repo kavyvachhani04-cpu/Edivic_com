@@ -18,7 +18,9 @@ const ClientPostProjectPage: React.FC = () => {
       budget: '', 
       deadline: '',
       reference: '',
-      category: 'Video Editing' // Default category
+      category: 'Video Editing',
+      skills: '',
+      experience_level: 'Intermediate'
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const hireName = searchParams.get('hire');
@@ -59,6 +61,8 @@ const ClientPostProjectPage: React.FC = () => {
           budget: formData.budget,
           deadline: formData.deadline,
           category: formData.category, // Added back
+          skills: formData.skills,
+          experience_level: formData.experience_level,
           status: 'pending' // Reverted to pending
         }
       ]);
@@ -116,21 +120,42 @@ const ClientPostProjectPage: React.FC = () => {
                         />
                     </div>
 
-                    <div>
-                        <label className="block text-sm font-medium text-slate-300 mb-1.5 uppercase tracking-wider text-xs">Category</label>
-                        <select
-                            className="w-full px-4 py-3 bg-slate-800/50 border border-slate-700 rounded-lg text-white focus:ring-2 focus:ring-primary-500 focus:outline-none"
-                            value={formData.category}
-                            onChange={e => setFormData({...formData, category: e.target.value})}
-                        >
-                            <option value="Video Editing">Video Editing</option>
-                            <option value="Animation">Animation</option>
-                            <option value="Motion Graphics">Motion Graphics</option>
-                            <option value="Color Grading">Color Grading</option>
-                            <option value="Sound Design">Sound Design</option>
-                            <option value="Other">Other</option>
-                        </select>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label className="block text-sm font-medium text-slate-300 mb-1.5 uppercase tracking-wider text-xs">Category</label>
+                            <select
+                                className="w-full px-4 py-3 bg-slate-800/50 border border-slate-700 rounded-lg text-white focus:ring-2 focus:ring-primary-500 focus:outline-none"
+                                value={formData.category}
+                                onChange={e => setFormData({...formData, category: e.target.value})}
+                            >
+                                <option value="Video Editing">Video Editing</option>
+                                <option value="Animation">Animation</option>
+                                <option value="Motion Graphics">Motion Graphics</option>
+                                <option value="Color Grading">Color Grading</option>
+                                <option value="Sound Design">Sound Design</option>
+                                <option value="Other">Other</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium text-slate-300 mb-1.5 uppercase tracking-wider text-xs">Experience Level</label>
+                            <select
+                                className="w-full px-4 py-3 bg-slate-800/50 border border-slate-700 rounded-lg text-white focus:ring-2 focus:ring-primary-500 focus:outline-none"
+                                value={formData.experience_level}
+                                onChange={e => setFormData({...formData, experience_level: e.target.value})}
+                            >
+                                <option value="Beginner">Beginner</option>
+                                <option value="Intermediate">Intermediate</option>
+                                <option value="Expert">Expert</option>
+                            </select>
+                        </div>
                     </div>
+
+                    <Input 
+                        label="Required Skills (Comma separated)" 
+                        value={formData.skills} 
+                        onChange={e => setFormData({...formData, skills: e.target.value})} 
+                        placeholder="e.g. Premiere Pro, After Effects, DaVinci Resolve"
+                    />
 
                     <div>
                         <label className="block text-sm font-medium text-slate-300 mb-1.5 uppercase tracking-wider text-xs">Description</label>

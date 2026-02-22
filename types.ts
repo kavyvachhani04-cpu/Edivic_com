@@ -42,4 +42,6 @@ export interface Project {
   created_at: string;
   rating?: number;
   feedback?: string;
+  skills?: string;
+  experience_level?: string;
 }

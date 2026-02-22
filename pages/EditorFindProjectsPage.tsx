@@ -4,16 +4,18 @@ import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
 import { EditorLayout } from '../components/EditorLayout';
 import { Button } from '../components/Button';
-import { Search, DollarSign, Calendar, Filter, Briefcase, User as UserIcon } from 'lucide-react';
+import { Search, DollarSign, Calendar, Filter, Briefcase, User as UserIcon, Star } from 'lucide-react';
 import { Project } from '../types';
 
 const EditorFindProjectsPage: React.FC = () => {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
   const [projects, setProjects] = useState<Project[]>([]);
-  const [clientNames, setClientNames] = useState<Record<string, string>>({});
+  const [clientDetails, setClientDetails] = useState<Record<string, { name: string, rating: number }>>({});
   const [searchTerm, setSearchTerm] = useState('');
   const [sortOption, setSortOption] = useState<'newest' | 'budget_high' | 'deadline'>('newest');
+  const [filterSkills, setFilterSkills] = useState('');
+  const [filterExperience, setFilterExperience] = useState('All');
   const [isLoadingData, setIsLoadingData] = useState(true);
 
   useEffect(() => {
@@ -48,13 +50,13 @@ const EditorFindProjectsPage: React.FC = () => {
             const clientIds = [...new Set(fetchedProjects.map(p => p.client_id))];
             const { data: profilesData } = await supabase
                 .from('profiles')
-                .select('id, name')
+                .select('id, name, rating')
                 .in('id', clientIds);
             
             if (profilesData) {
-                const nameMap: Record<string, string> = {};
-                profilesData.forEach(p => { nameMap[p.id] = p.name; });
-                setClientNames(nameMap);
+                const detailsMap: Record<string, { name: string, rating: number }> = {};
+                profilesData.forEach(p => { detailsMap[p.id] = { name: p.name, rating: p.rating }; });
+                setClientDetails(detailsMap);
             }
         }
     } catch (err) {
@@ -79,10 +81,14 @@ const EditorFindProjectsPage: React.FC = () => {
 
   // Filter Logic
   const filteredProjects = projects
-    .filter(p => 
-        p.title.toLowerCase().includes(searchTerm.toLowerCase()) || 
-        p.description.toLowerCase().includes(searchTerm.toLowerCase())
-    )
+    .filter(p => {
+        const matchesSearch = p.title.toLowerCase().includes(searchTerm.toLowerCase()) || 
+                              p.description.toLowerCase().includes(searchTerm.toLowerCase());
+        const matchesExperience = filterExperience === 'All' || p.experience_level === filterExperience;
+        const matchesSkills = filterSkills === '' || (p.skills && p.skills.toLowerCase().includes(filterSkills.toLowerCase()));
+        
+        return matchesSearch && matchesExperience && matchesSkills;
+    })
     .sort((a, b) => {
         if (sortOption === 'budget_high') {
             const budgetA = parseFloat(a.budget.replace(/[^0-9.]/g, '')) || 0;
@@ -99,28 +105,56 @@ const EditorFindProjectsPage: React.FC = () => {
   return (
     <EditorLayout title="Find Projects" subtitle="Discover new opportunities.">
         {/* Filters */}
-        <div className="flex flex-col md:flex-row gap-4 mb-8 bg-slate-800/50 p-4 rounded-xl border border-white/5">
-            <div className="relative flex-1">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500" />
-                <input 
-                    type="text" 
-                    placeholder="Search projects..." 
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="w-full pl-10 pr-4 py-2 bg-slate-900 border border-slate-700 rounded-lg text-sm text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
-                />
+        <div className="flex flex-col gap-4 mb-8 bg-slate-800/50 p-6 rounded-xl border border-white/5">
+            <div className="flex flex-col md:flex-row gap-4">
+                <div className="relative flex-1">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500" />
+                    <input 
+                        type="text" 
+                        placeholder="Search projects..." 
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        className="w-full pl-10 pr-4 py-2 bg-slate-900 border border-slate-700 rounded-lg text-sm text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
+                    />
+                </div>
+                <div className="relative min-w-[200px]">
+                    <Filter className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500 pointer-events-none" />
+                    <select 
+                        value={sortOption}
+                        onChange={(e) => setSortOption(e.target.value as any)}
+                        className="w-full pl-10 pr-4 py-2 bg-slate-900 border border-slate-700 rounded-lg text-sm text-white focus:outline-none focus:ring-2 focus:ring-purple-500 appearance-none cursor-pointer"
+                    >
+                        <option value="newest">Newest First</option>
+                        <option value="budget_high">Highest Budget</option>
+                        <option value="deadline">Urgent Deadline</option>
+                    </select>
+                </div>
             </div>
-            <div className="relative min-w-[200px]">
-                <Filter className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500 pointer-events-none" />
-                <select 
-                    value={sortOption}
-                    onChange={(e) => setSortOption(e.target.value as any)}
-                    className="w-full pl-10 pr-4 py-2 bg-slate-900 border border-slate-700 rounded-lg text-sm text-white focus:outline-none focus:ring-2 focus:ring-purple-500 appearance-none cursor-pointer"
-                >
-                    <option value="newest">Newest First</option>
-                    <option value="budget_high">Highest Budget</option>
-                    <option value="deadline">Urgent Deadline</option>
-                </select>
+            
+            <div className="flex flex-col md:flex-row gap-4 pt-4 border-t border-white/5">
+                <div className="flex-1">
+                    <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Filter by Skills</label>
+                    <input 
+                        type="text" 
+                        placeholder="e.g. Premiere, After Effects" 
+                        value={filterSkills}
+                        onChange={(e) => setFilterSkills(e.target.value)}
+                        className="w-full px-4 py-2 bg-slate-900 border border-slate-700 rounded-lg text-sm text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
+                    />
+                </div>
+                <div className="min-w-[200px]">
+                    <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Experience Level</label>
+                    <select 
+                        value={filterExperience}
+                        onChange={(e) => setFilterExperience(e.target.value)}
+                        className="w-full px-4 py-2 bg-slate-900 border border-slate-700 rounded-lg text-sm text-white focus:outline-none focus:ring-2 focus:ring-purple-500 appearance-none cursor-pointer"
+                    >
+                        <option value="All">All Levels</option>
+                        <option value="Beginner">Beginner</option>
+                        <option value="Intermediate">Intermediate</option>
+                        <option value="Expert">Expert</option>
+                    </select>
+                </div>
             </div>
         </div>
 
@@ -139,16 +173,32 @@ const EditorFindProjectsPage: React.FC = () => {
                         <div className="flex justify-between items-start mb-4">
                             <div>
                                 <h3 className="text-lg font-bold text-white">{project.title}</h3>
-                                {clientNames[project.client_id] && (
+                                {clientDetails[project.client_id] && (
                                     <div className="flex items-center text-xs text-slate-500 mt-1 uppercase tracking-wider">
                                         <UserIcon className="h-3 w-3 mr-1" />
-                                        {clientNames[project.client_id]}
+                                        {clientDetails[project.client_id].name}
+                                        <span className="mx-2 text-slate-700">|</span>
+                                        <Star className="h-3 w-3 text-yellow-500 fill-yellow-500 mr-1" />
+                                        {Number(clientDetails[project.client_id].rating || 0).toFixed(1)}
                                     </div>
                                 )}
                             </div>
                             <span className="px-3 py-1 rounded-full text-xs font-bold uppercase bg-blue-500/10 text-blue-400 border border-blue-500/20">
                                 Open
                             </span>
+                        </div>
+                        
+                        <div className="flex flex-wrap gap-2 mb-4">
+                            {project.experience_level && (
+                                <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-slate-700 text-slate-300 border border-slate-600">
+                                    {project.experience_level}
+                                </span>
+                            )}
+                            {project.skills && project.skills.split(',').slice(0, 3).map((skill, i) => (
+                                <span key={i} className="px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-purple-500/10 text-purple-300 border border-purple-500/20">
+                                    {skill.trim()}
+                                </span>
+                            ))}
                         </div>
                         
                         <p className="text-slate-300 text-sm mb-6 flex-grow leading-relaxed line-clamp-3">
