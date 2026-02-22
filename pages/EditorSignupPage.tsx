@@ -49,7 +49,12 @@ const EditorSignupPage: React.FC = () => {
                 role: 'editor', 
                 created_at: new Date().toISOString(),
                 rating: 0,
-                is_featured: false
+                is_featured: false,
+                is_active: true,
+                skills: 'Video Editing, Color Grading', // Default skills
+                bio: 'Professional video editor ready to work on your projects.', // Default bio
+                experience: '1 Year', // Default experience
+                hourly_rate: '$30' // Default rate
                 }]);
 
             if (profileError) console.warn('Profile creation warning:', profileError.message);

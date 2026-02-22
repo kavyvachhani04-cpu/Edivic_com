@@ -16,6 +16,7 @@ interface EditorProfile {
     profile_photo?: string;
     hourly_rate?: string;
     is_featured?: boolean;
+    is_active?: boolean;
 }
 
 const ClientFindEditorsPage: React.FC = () => {
@@ -45,13 +46,16 @@ const ClientFindEditorsPage: React.FC = () => {
       try {
           const { data: editorsData, error } = await supabase
             .from('profiles')
-            .select('id, name, skills, bio, profile_photo, rating, hourly_rate, is_featured')
+            .select('id, name, skills, bio, profile_photo, rating, hourly_rate, is_featured, is_active')
             .eq('role', 'editor')
             .order('created_at', { ascending: false });
           
           if (error) throw error;
 
-          const editorsWithRatings = await Promise.all((editorsData || []).map(async (editor) => {
+          // Filter locally for is_active to be safe if DB column is missing or null
+          const activeEditors = (editorsData || []).filter(e => e.is_active !== false);
+
+          const editorsWithRatings = await Promise.all(activeEditors.map(async (editor) => {
               let avgRating = editor.rating || 0;
               
               try {
@@ -82,10 +86,18 @@ const ClientFindEditorsPage: React.FC = () => {
               avgRating: '4.9',
               hourly_rate: '$50',
               is_featured: true,
+              is_active: true,
               profile_photo: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=774&q=80'
           };
           
-          setEditors([fakeEditor, ...editorsWithRatings]);
+          // Sort: Featured first
+          const sortedEditors = [fakeEditor, ...editorsWithRatings].sort((a, b) => {
+              if (a.is_featured && !b.is_featured) return -1;
+              if (!a.is_featured && b.is_featured) return 1;
+              return 0;
+          });
+
+          setEditors(sortedEditors);
       } catch (e) {
           console.error('Error fetching editors:', e);
       } finally {

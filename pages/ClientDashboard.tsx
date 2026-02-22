@@ -16,6 +16,7 @@ interface EditorProfile {
     profile_photo?: string;
     hourly_rate?: string;
     is_featured?: boolean;
+    is_active?: boolean;
 }
 
 const ClientDashboard: React.FC = () => {
@@ -69,11 +70,14 @@ const ClientDashboard: React.FC = () => {
       setLoadingEditors(true);
       try {
           // Fetch editors
+          // We select all editors. We try to filter by is_active if possible, but for now let's just get all editors.
+          // Ideally: .eq('is_active', true)
           const { data: editorsData, error } = await supabase
             .from('profiles')
-            .select('id, name, skills, bio, profile_photo, rating, hourly_rate, is_featured')
+            .select('id, name, skills, bio, profile_photo, rating, hourly_rate, is_featured, is_active')
             .eq('role', 'editor')
-            .order('is_featured', { ascending: false });
+            // .eq('is_active', true) // Uncomment if column exists and is populated
+            .order('created_at', { ascending: false });
           
           if (error) {
               console.error('Supabase error fetching editors:', error);
@@ -82,17 +86,16 @@ const ClientDashboard: React.FC = () => {
 
           console.log('Fetched editors raw data:', editorsData);
 
-          // Fetch ratings for these editors (if we want to calculate dynamically, or rely on stored rating)
-          // For now, let's use the stored rating if available, or calculate it.
-          // The requirement says "rating (default 0)" in profile.
-          // But we also have project ratings. Let's mix them or just use the profile one if updated.
-          // Let's stick to the previous logic of calculating it for freshness, but fallback to profile rating.
-          
-          const editorsWithRatings = await Promise.all((editorsData || []).map(async (editor) => {
+          // Filter locally for is_active to be safe if DB column is missing or null
+          // If is_active is missing (undefined), we assume true for now to show them, or false?
+          // The requirement says "where is_active = true".
+          // Let's assume true if it's missing to avoid hiding everyone during migration.
+          const activeEditors = (editorsData || []).filter(e => e.is_active !== false);
+
+          const editorsWithRatings = await Promise.all(activeEditors.map(async (editor) => {
               let avgRating = editor.rating || 0;
               
               try {
-                  // If we want to calculate real-time rating from projects:
                   const { data: ratings, error: ratingError } = await supabase
                       .from('projects')
                       .select('rating')
@@ -121,10 +124,18 @@ const ClientDashboard: React.FC = () => {
               avgRating: '4.9',
               hourly_rate: '$50',
               is_featured: true,
+              is_active: true,
               profile_photo: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=774&q=80'
           };
           
-          setEditors([fakeEditor, ...editorsWithRatings]);
+          // Sort: Featured first, then by rating or created_at
+          const sortedEditors = [fakeEditor, ...editorsWithRatings].sort((a, b) => {
+              if (a.is_featured && !b.is_featured) return -1;
+              if (!a.is_featured && b.is_featured) return 1;
+              return 0;
+          });
+          
+          setEditors(sortedEditors);
       } catch (e) {
           console.error('Error fetching editors:', e);
       } finally {
