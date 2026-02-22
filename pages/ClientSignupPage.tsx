@@ -74,12 +74,11 @@ const ClientSignupPage: React.FC = () => {
     } catch (err: any) {
       console.error('Signup error:', err);
       // Handle different error formats
-      const message = err.message || (typeof err === 'string' ? err : 'Unknown error');
+      const message = err.message || err.error_description || (typeof err === 'string' ? err : 'Unknown error');
       const lowerMessage = message.toLowerCase();
 
       if (lowerMessage.includes('rate limit') || lowerMessage.includes('security purposes') || err.status === 429) {
-        // Allow retry after a short delay visually, but explain the situation
-        setError('Security check: Please wait 30 seconds before trying again, or try a different email.');
+        setError('Too many signup attempts. Please wait 60 seconds before trying again, or use a different email address.');
       } else if (lowerMessage.includes('already registered') || lowerMessage.includes('unique constraint')) {
         setError('This email is already registered. Please log in.');
       } else {
