@@ -6,6 +6,7 @@ import { EditorLayout } from '../components/EditorLayout';
 import { Button } from '../components/Button';
 import { Search, DollarSign, Calendar, Filter, Briefcase, User as UserIcon, Star, MessageSquare } from 'lucide-react';
 import { Project } from '../types';
+import { startConversation } from '../lib/chat';
 
 const EditorFindProjectsPage: React.FC = () => {
   const { user, loading } = useAuth();
@@ -77,6 +78,17 @@ const EditorFindProjectsPage: React.FC = () => {
         if (error) throw error;
         navigate('/editor/my-projects');
     } catch(e) { console.error(e); }
+  };
+
+  const handleChatClick = async (clientId: string, projectId: string) => {
+      if (!user) return;
+      try {
+          const conversationId = await startConversation(clientId, user.id, projectId);
+          navigate(`/editor/chat?conversation_id=${conversationId}`);
+      } catch (error) {
+          console.error('Failed to start chat:', error);
+          alert('Failed to start chat. Please try again.');
+      }
   };
 
   // Filter Logic
@@ -205,7 +217,7 @@ const EditorFindProjectsPage: React.FC = () => {
                                     Accept Project
                                 </Button>
                                 <button 
-                                    onClick={() => alert('Chat feature coming soon!')}
+                                    onClick={() => handleChatClick(project.client_id, project.id)}
                                     className="px-4 py-2 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 text-white transition-colors flex items-center justify-center"
                                     title="Chat with Client"
                                 >

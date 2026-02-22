@@ -6,6 +6,7 @@ import { ClientLayout } from '../components/ClientLayout';
 import { Button } from '../components/Button';
 import { LoadingScreen } from '../components/LoadingScreen';
 import { User, Star, BadgeCheck, Zap, MessageSquare, Search, Filter } from 'lucide-react';
+import { startConversation } from '../lib/chat';
 
 interface EditorProfile {
     id: string;
@@ -133,6 +134,17 @@ const ClientFindEditorsPage: React.FC = () => {
           setEditors([]);
       } finally {
           setLoadingEditors(false);
+      }
+  };
+
+  const handleChatClick = async (editorId: string) => {
+      if (!user) return;
+      try {
+          const conversationId = await startConversation(user.id, editorId);
+          navigate(`/client/chat?conversation_id=${conversationId}`);
+      } catch (error) {
+          console.error('Failed to start chat:', error);
+          alert('Failed to start chat. Please try again.');
       }
   };
 
@@ -267,7 +279,7 @@ const ClientFindEditorsPage: React.FC = () => {
                                 View Profile
                             </Button>
                             <button 
-                                onClick={() => navigate('/client/chat')}
+                                onClick={() => handleChatClick(editor.id)}
                                 className="px-4 py-2 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 text-white transition-colors flex items-center justify-center"
                                 title="Chat with Editor"
                             >

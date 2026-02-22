@@ -5,6 +5,8 @@ import { ClientLayout } from '../components/ClientLayout';
 import { Button } from '../components/Button';
 import { LoadingScreen } from '../components/LoadingScreen';
 import { User, Star, BadgeCheck, Zap, MessageSquare, Globe, Clock, Monitor, Wrench, Play, ThumbsUp, Calendar, CheckCircle } from 'lucide-react';
+import { useAuth } from '../contexts/AuthContext';
+import { startConversation } from '../lib/chat';
 
 interface EditorProfile {
     id: string;
@@ -28,6 +30,7 @@ interface EditorProfile {
 const ViewEditorProfilePage: React.FC = () => {
     const { id } = useParams<{ id: string }>();
     const navigate = useNavigate();
+    const { user } = useAuth();
     const [editor, setEditor] = useState<EditorProfile | null>(null);
     const [loading, setLoading] = useState(true);
 
@@ -63,6 +66,17 @@ const ViewEditorProfilePage: React.FC = () => {
             setEditor(null);
         } finally {
             setLoading(false);
+        }
+    };
+
+    const handleChatClick = async () => {
+        if (!user || !editor) return;
+        try {
+            const conversationId = await startConversation(user.id, editor.id);
+            navigate(`/client/chat?conversation_id=${conversationId}`);
+        } catch (error) {
+            console.error('Failed to start chat:', error);
+            alert('Failed to start chat. Please try again.');
         }
     };
 
@@ -212,7 +226,7 @@ const ViewEditorProfilePage: React.FC = () => {
                                     variant="outline" 
                                     size="lg" 
                                     className="border-white/20 hover:border-gold hover:text-gold text-white px-8 flex-1"
-                                    onClick={() => navigate('/client/chat')}
+                                    onClick={handleChatClick}
                                 >
                                     <MessageSquare className="h-5 w-5 mr-2" />
                                     Chat

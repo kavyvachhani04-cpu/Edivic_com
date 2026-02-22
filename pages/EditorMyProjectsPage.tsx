@@ -6,6 +6,7 @@ import { EditorLayout } from '../components/EditorLayout';
 import { Button } from '../components/Button';
 import { Briefcase, Calendar, DollarSign, Send, MessageSquare } from 'lucide-react';
 import { Project } from '../types';
+import { startConversation } from '../lib/chat';
 
 const EditorMyProjectsPage: React.FC = () => {
   const { user, loading } = useAuth();
@@ -62,6 +63,17 @@ const EditorMyProjectsPage: React.FC = () => {
     }
   };
 
+  const handleChatClick = async (clientId: string, projectId: string) => {
+      if (!user) return;
+      try {
+          const conversationId = await startConversation(clientId, user.id, projectId);
+          navigate(`/editor/chat?conversation_id=${conversationId}`);
+      } catch (error) {
+          console.error('Failed to start chat:', error);
+          alert('Failed to start chat. Please try again.');
+      }
+  };
+
   return (
     <EditorLayout title="My Projects" subtitle="Manage your active jobs.">
         <div className="grid gap-6">
@@ -91,7 +103,7 @@ const EditorMyProjectsPage: React.FC = () => {
                                     In Progress
                                 </span>
                                 <button 
-                                    onClick={() => alert('Chat feature coming soon!')}
+                                    onClick={() => handleChatClick(project.client_id, project.id)}
                                     className="flex items-center text-xs font-medium text-purple-400 hover:text-purple-300 transition-colors bg-purple-500/10 hover:bg-purple-500/20 px-3 py-1.5 rounded-lg border border-purple-500/20"
                                 >
                                     <MessageSquare className="h-3 w-3 mr-1.5" />

@@ -6,6 +6,7 @@ import { EditorLayout } from '../components/EditorLayout';
 import { LoadingScreen } from '../components/LoadingScreen';
 import { Button } from '../components/Button';
 import { Briefcase, CheckCircle, Search, Clock, ArrowUpRight, MessageSquare, Star, User as UserIcon } from 'lucide-react';
+import { startConversation } from '../lib/chat';
 
 const EditorDashboard: React.FC = () => {
   const { user, loading } = useAuth();
@@ -83,6 +84,17 @@ const EditorDashboard: React.FC = () => {
     } catch (e) {
         console.error('Error fetching stats:', e);
     }
+  };
+
+  const handleChatClick = async (clientId: string, projectId: string) => {
+      if (!user) return;
+      try {
+          const conversationId = await startConversation(clientId, user.id, projectId);
+          navigate(`/editor/chat?conversation_id=${conversationId}`);
+      } catch (error) {
+          console.error('Failed to start chat:', error);
+          alert('Failed to start chat. Please try again.');
+      }
   };
 
   if (loading || !user) return <LoadingScreen />;
@@ -193,7 +205,7 @@ const EditorDashboard: React.FC = () => {
                                     </div>
                                     <div className="flex gap-2">
                                         <button 
-                                            onClick={() => navigate('/editor/chat')}
+                                            onClick={() => handleChatClick(project.client_id, project.id)}
                                             className="px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 hover:bg-white/10 text-white transition-colors flex items-center text-xs font-bold"
                                             title="Chat with Client"
                                         >

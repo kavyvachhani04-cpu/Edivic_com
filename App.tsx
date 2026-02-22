@@ -7,6 +7,7 @@ import ForgotPasswordPage from './pages/ForgotPasswordPage';
 import AdminLoginPage from './pages/AdminLoginPage';
 import AdminPanelPage from './pages/AdminPanelPage';
 import { AuthProvider } from './contexts/AuthContext';
+import { ChatProvider } from './contexts/ChatContext';
 import { SubscriptionGuard } from './components/SubscriptionGuard';
 import { RoleGuard } from './components/RoleGuard';
 
@@ -53,10 +54,11 @@ const URLParamHandler = () => {
 const App: React.FC = () => {
   return (
     <AuthProvider>
-      <Router>
-        <URLParamHandler />
-        <Layout>
-          <Routes>
+      <ChatProvider>
+        <Router>
+          <URLParamHandler />
+          <Layout>
+            <Routes>
             <Route path="/" element={<LandingPage />} />
             <Route path="/about" element={<AboutPage />} />
             <Route path="/contact" element={<ContactPage />} />
@@ -95,6 +97,7 @@ const App: React.FC = () => {
           </Routes>
         </Layout>
       </Router>
+      </ChatProvider>
     </AuthProvider>
   );
 };

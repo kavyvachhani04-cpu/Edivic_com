@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import { useChat } from '../contexts/ChatContext';
 import { supabase } from '../lib/supabase';
 import { 
   MonitorPlay, 
@@ -28,6 +29,7 @@ interface EditorLayoutProps {
 
 export const EditorLayout: React.FC<EditorLayoutProps> = ({ children, title, subtitle }) => {
   const { user } = useAuth();
+  const { unreadCount } = useChat();
   const navigate = useNavigate();
   const location = useLocation();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -91,7 +93,12 @@ export const EditorLayout: React.FC<EditorLayoutProps> = ({ children, title, sub
                 <span className={isActive ? 'text-white' : 'text-slate-500 group-hover:text-purple-400'}>
                   {item.icon}
                 </span>
-                <span className="font-medium text-sm">{item.label}</span>
+                <span className="font-medium text-sm flex-1">{item.label}</span>
+                {item.label === 'Chat' && unreadCount > 0 && (
+                  <span className="bg-red-500 text-white text-xs font-bold px-2 py-0.5 rounded-full">
+                    {unreadCount}
+                  </span>
+                )}
               </Link>
             );
           })}
