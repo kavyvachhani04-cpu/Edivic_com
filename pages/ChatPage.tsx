@@ -295,7 +295,7 @@ const ChatPage: React.FC = () => {
       );
   }
 
-  const ChatContent = () => (
+  const content = (
     <div className="flex h-[calc(100vh-12rem)] bg-black border border-white/10 rounded-2xl overflow-hidden shadow-2xl">
       {/* Left Sidebar: Conversations */}
       <div className="w-1/3 border-r border-white/10 flex flex-col bg-zinc-950">
@@ -460,14 +460,14 @@ const ChatPage: React.FC = () => {
   if (isClient) {
     return (
       <ClientLayout title="Messages" subtitle="Chat with your editors">
-        <ChatContent />
+        {content}
       </ClientLayout>
     );
   }
 
   return (
     <EditorLayout title="Messages" subtitle="Chat with your clients">
-      <ChatContent />
+      {content}
     </EditorLayout>
   );
 };
