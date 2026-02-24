@@ -5,6 +5,7 @@ ALTER TABLE messages ENABLE ROW LEVEL SECURITY;
 -- Conversations Policies
 
 -- Clients can view their own conversations
+DROP POLICY IF EXISTS "Clients can view their own conversations" ON conversations;
 CREATE POLICY "Clients can view their own conversations"
 ON conversations FOR SELECT
 TO authenticated
@@ -13,6 +14,7 @@ USING (
 );
 
 -- Editors can view their own conversations
+DROP POLICY IF EXISTS "Editors can view their own conversations" ON conversations;
 CREATE POLICY "Editors can view their own conversations"
 ON conversations FOR SELECT
 TO authenticated
@@ -21,6 +23,7 @@ USING (
 );
 
 -- Admins can view all conversations
+DROP POLICY IF EXISTS "Admins can view all conversations" ON conversations;
 CREATE POLICY "Admins can view all conversations"
 ON conversations FOR SELECT
 TO authenticated
@@ -33,6 +36,7 @@ USING (
 );
 
 -- Users can insert conversations if they are part of it
+DROP POLICY IF EXISTS "Users can create conversations" ON conversations;
 CREATE POLICY "Users can create conversations"
 ON conversations FOR INSERT
 TO authenticated
@@ -44,6 +48,7 @@ WITH CHECK (
 -- Messages Policies
 
 -- Users can view messages in their conversations
+DROP POLICY IF EXISTS "Users can view messages in their conversations" ON messages;
 CREATE POLICY "Users can view messages in their conversations"
 ON messages FOR SELECT
 TO authenticated
@@ -56,6 +61,7 @@ USING (
 );
 
 -- Admins can view all messages
+DROP POLICY IF EXISTS "Admins can view all messages" ON messages;
 CREATE POLICY "Admins can view all messages"
 ON messages FOR SELECT
 TO authenticated
@@ -68,6 +74,7 @@ USING (
 );
 
 -- Users can insert messages in their conversations
+DROP POLICY IF EXISTS "Users can insert messages in their conversations" ON messages;
 CREATE POLICY "Users can insert messages in their conversations"
 ON messages FOR INSERT
 TO authenticated

@@ -1,5 +1,10 @@
+-- Drop existing tables to recreate them with the new schema
+DROP TABLE IF EXISTS public.messages CASCADE;
+DROP TABLE IF EXISTS public.conversations CASCADE;
+DROP TABLE IF EXISTS public.chats CASCADE;
+
 -- Create chats table
-CREATE TABLE IF NOT EXISTS public.chats (
+CREATE TABLE public.chats (
     id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
     client_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
     editor_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
@@ -8,7 +13,7 @@ CREATE TABLE IF NOT EXISTS public.chats (
 );
 
 -- Create messages table
-CREATE TABLE IF NOT EXISTS public.messages (
+CREATE TABLE public.messages (
     id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
     chat_id UUID NOT NULL REFERENCES public.chats(id) ON DELETE CASCADE,
     sender_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
@@ -23,15 +28,18 @@ ALTER TABLE public.chats ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.messages ENABLE ROW LEVEL SECURITY;
 
 -- Policies for chats
+DROP POLICY IF EXISTS "Users can view their own chats" ON public.chats;
 CREATE POLICY "Users can view their own chats"
     ON public.chats FOR SELECT
     USING (auth.uid() = client_id OR auth.uid() = editor_id);
 
+DROP POLICY IF EXISTS "Users can insert their own chats" ON public.chats;
 CREATE POLICY "Users can insert their own chats"
     ON public.chats FOR INSERT
     WITH CHECK (auth.uid() = client_id OR auth.uid() = editor_id);
 
 -- Policies for messages
+DROP POLICY IF EXISTS "Users can view messages in their chats" ON public.messages;
 CREATE POLICY "Users can view messages in their chats"
     ON public.messages FOR SELECT
     USING (
@@ -42,6 +50,7 @@ CREATE POLICY "Users can view messages in their chats"
         )
     );
 
+DROP POLICY IF EXISTS "Users can insert messages in their chats" ON public.messages;
 CREATE POLICY "Users can insert messages in their chats"
     ON public.messages FOR INSERT
     WITH CHECK (
@@ -53,16 +62,7 @@ CREATE POLICY "Users can insert messages in their chats"
         )
     );
 
-CREATE POLICY "Users can update messages in their chats"
-    ON public.messages FOR UPDATE
-    USING (
-        EXISTS (
-            SELECT 1 FROM public.chats c
-            WHERE c.id = messages.chat_id
-            AND (c.client_id = auth.uid() OR c.editor_id = auth.uid())
-        )
-    );
-
+DROP POLICY IF EXISTS "Users can update messages in their chats" ON public.messages;
 CREATE POLICY "Users can update messages in their chats"
     ON public.messages FOR UPDATE
     USING (

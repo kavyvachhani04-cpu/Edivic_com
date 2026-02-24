@@ -24,15 +24,18 @@ ALTER TABLE public.conversations ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.messages ENABLE ROW LEVEL SECURITY;
 
 -- Policies for conversations
+DROP POLICY IF EXISTS "Users can view their own conversations" ON public.conversations;
 CREATE POLICY "Users can view their own conversations"
     ON public.conversations FOR SELECT
     USING (auth.uid() = client_id OR auth.uid() = editor_id);
 
+DROP POLICY IF EXISTS "Users can insert their own conversations" ON public.conversations;
 CREATE POLICY "Users can insert their own conversations"
     ON public.conversations FOR INSERT
     WITH CHECK (auth.uid() = client_id OR auth.uid() = editor_id);
 
 -- Policies for messages
+DROP POLICY IF EXISTS "Users can view messages in their conversations" ON public.messages;
 CREATE POLICY "Users can view messages in their conversations"
     ON public.messages FOR SELECT
     USING (
@@ -43,6 +46,7 @@ CREATE POLICY "Users can view messages in their conversations"
         )
     );
 
+DROP POLICY IF EXISTS "Users can insert messages in their conversations" ON public.messages;
 CREATE POLICY "Users can insert messages in their conversations"
     ON public.messages FOR INSERT
     WITH CHECK (

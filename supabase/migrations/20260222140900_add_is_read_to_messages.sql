@@ -2,6 +2,7 @@
 ALTER TABLE public.messages ADD COLUMN IF NOT EXISTS is_read BOOLEAN DEFAULT false;
 
 -- Add policy to allow users to update messages in their conversations (to mark as read)
+DROP POLICY IF EXISTS "Users can update messages in their conversations" ON public.messages;
 CREATE POLICY "Users can update messages in their conversations"
     ON public.messages FOR UPDATE
     USING (

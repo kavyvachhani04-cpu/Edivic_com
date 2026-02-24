@@ -70,9 +70,14 @@ const ViewEditorProfilePage: React.FC = () => {
     };
 
     const handleChatClick = async () => {
-        if (!user || !editor) return;
+        if (!user || !editor) {
+            console.error('handleChatClick: Missing user or editor', { user, editor });
+            return;
+        }
+        console.log(`Starting chat between client ${user.id} and editor ${editor.id}`);
         try {
             const chatId = await startConversation(user.id, editor.id);
+            console.log('Chat started successfully, navigating to:', `/client/chat?chat_id=${chatId}`);
             navigate(`/client/chat?chat_id=${chatId}`);
         } catch (error) {
             console.error('Failed to start chat:', error);

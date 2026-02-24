@@ -94,7 +94,11 @@ const ChatPage: React.FC = () => {
   };
 
   const fetchConversations = async () => {
-    if (!user) return;
+    if (!user) {
+      console.log('fetchConversations: No user logged in');
+      return;
+    }
+    console.log('Fetching conversations for user:', user.id);
     try {
       const { data: convs, error } = await supabase
         .from('chats')
@@ -104,25 +108,40 @@ const ChatPage: React.FC = () => {
         .or(`client_id.eq.${user.id},editor_id.eq.${user.id}`)
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching chats from Supabase:', error);
+        throw error;
+      }
+      
+      console.log('Raw conversations fetched:', convs);
 
       // Fetch other user details
       const enrichedConvs = await Promise.all((convs || []).map(async (conv) => {
         const otherUserId = isClient ? conv.editor_id : conv.client_id;
-        const { data: profile } = await supabase
+        console.log(`Fetching profile for other user: ${otherUserId} in chat ${conv.id}`);
+        
+        const { data: profile, error: profileError } = await supabase
           .from('profiles')
           .select('id, name, profile_photo, profile_image_url')
           .eq('id', otherUserId)
           .single();
           
+        if (profileError) {
+             console.warn(`Could not fetch profile for user ${otherUserId}`, profileError);
+        }
+
         // Fetch last message
-        const { data: lastMsg } = await supabase
+        const { data: lastMsg, error: msgError } = await supabase
           .from('messages')
           .select('message, created_at')
           .eq('chat_id', conv.id)
           .order('created_at', { ascending: false })
           .limit(1)
           .single();
+          
+        if (msgError && msgError.code !== 'PGRST116') { // PGRST116 is "The result contains 0 rows"
+            console.warn(`Error fetching last message for chat ${conv.id}`, msgError);
+        }
 
         return {
           ...conv,
@@ -130,7 +149,7 @@ const ChatPage: React.FC = () => {
             id: profile.id,
             name: profile.name,
             profile_photo: profile.profile_image_url || profile.profile_photo
-          } : undefined,
+          } : { id: otherUserId, name: 'Unknown User' },
           last_message: lastMsg ? {
             text: lastMsg.message,
             created_at: lastMsg.created_at
@@ -138,7 +157,11 @@ const ChatPage: React.FC = () => {
         };
       }));
 
+      console.log('Enriched conversations:', enrichedConvs);
       setConversations(enrichedConvs);
+      
+      // If we have an initial ID but it's not in the list (maybe new chat), we should still try to fetch it or add it?
+      // For now, if activeConversationId is set, we keep it.
       if (!activeConversationId && enrichedConvs.length > 0) {
         setActiveConversationId(enrichedConvs[0].id);
       }
@@ -150,6 +173,7 @@ const ChatPage: React.FC = () => {
   };
 
   const fetchMessages = async (conversationId: string) => {
+    console.log(`Fetching messages for chat: ${conversationId}`);
     try {
       const { data, error } = await supabase
         .from('messages')
@@ -157,7 +181,12 @@ const ChatPage: React.FC = () => {
         .eq('chat_id', conversationId)
         .order('created_at', { ascending: true });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching messages:', error);
+        throw error;
+      }
+      
+      console.log(`Fetched ${data?.length || 0} messages`);
       setMessages(data || []);
     } catch (error) {
       console.error('Error fetching messages:', error);
@@ -208,6 +237,17 @@ const ChatPage: React.FC = () => {
   };
 
   const activeConversation = conversations.find(c => c.id === activeConversationId);
+
+  if (loading) {
+      const Layout = isClient ? ClientLayout : EditorLayout;
+      return (
+        <Layout title="Messages" subtitle="Loading chats...">
+            <div className="flex items-center justify-center h-[calc(100vh-12rem)]">
+                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-gold"></div>
+            </div>
+        </Layout>
+      );
+  }
 
   const ChatContent = () => (
     <div className="flex h-[calc(100vh-12rem)] bg-black border border-white/10 rounded-2xl overflow-hidden shadow-2xl">

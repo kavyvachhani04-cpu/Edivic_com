@@ -139,8 +139,10 @@ const ClientFindEditorsPage: React.FC = () => {
 
   const handleChatClick = async (editorId: string) => {
       if (!user) return;
+      console.log(`ClientFindEditorsPage: Starting chat between ${user.id} and ${editorId}`);
       try {
           const chatId = await startConversation(user.id, editorId);
+          console.log('Chat started, navigating to:', chatId);
           navigate(`/client/chat?chat_id=${chatId}`);
       } catch (error) {
           console.error('Failed to start chat:', error);
