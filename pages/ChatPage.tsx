@@ -103,10 +103,10 @@ const ChatPage: React.FC = () => {
       const { data: convs, error } = await supabase
         .from('chats')
         .select(`
-          id, client_id, editor_id, created_at
+          id, client_id, editor_id, created_at, updated_at
         `)
         .or(`client_id.eq.${user.id},editor_id.eq.${user.id}`)
-        .order('created_at', { ascending: false });
+        .order('updated_at', { ascending: false });
 
       if (error) {
         console.error('Error fetching chats from Supabase:', error);
@@ -121,7 +121,7 @@ const ChatPage: React.FC = () => {
         console.log('Active conversation not in list, fetching specifically:', activeConversationId);
         const { data: specificConv } = await supabase
           .from('chats')
-          .select('id, client_id, editor_id, created_at')
+          .select('id, client_id, editor_id, created_at, updated_at')
           .eq('id', activeConversationId)
           .single();
         
