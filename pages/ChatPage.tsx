@@ -113,16 +113,31 @@ const ChatPage: React.FC = () => {
         throw error;
       }
       
-      console.log('Raw conversations fetched:', convs);
+      console.log('Raw conversations fetched:', convs?.length || 0);
+
+      // If we have an activeConversationId from URL but it's not in the list, fetch it specifically
+      let allConvs = convs || [];
+      if (activeConversationId && !allConvs.find(c => c.id === activeConversationId)) {
+        console.log('Active conversation not in list, fetching specifically:', activeConversationId);
+        const { data: specificConv } = await supabase
+          .from('chats')
+          .select('id, client_id, editor_id, created_at')
+          .eq('id', activeConversationId)
+          .single();
+        
+        if (specificConv) {
+          allConvs = [specificConv, ...allConvs];
+        }
+      }
 
       // Fetch other user details
-      const enrichedConvs = await Promise.all((convs || []).map(async (conv) => {
-        const otherUserId = isClient ? conv.editor_id : conv.client_id;
+      const enrichedConvs = await Promise.all(allConvs.map(async (conv) => {
+        const otherUserId = user.id === conv.client_id ? conv.editor_id : conv.client_id;
         console.log(`Fetching profile for other user: ${otherUserId} in chat ${conv.id}`);
         
         const { data: profile, error: profileError } = await supabase
           .from('profiles')
-          .select('id, name, profile_photo, profile_image_url')
+          .select('id, name, full_name, profile_photo, profile_image_url')
           .eq('id', otherUserId)
           .single();
           
@@ -147,7 +162,7 @@ const ChatPage: React.FC = () => {
           ...conv,
           other_user: profile ? {
             id: profile.id,
-            name: profile.name,
+            name: profile.full_name || profile.name || 'Unknown User',
             profile_photo: profile.profile_image_url || profile.profile_photo
           } : { id: otherUserId, name: 'Unknown User' },
           last_message: lastMsg ? {
@@ -157,11 +172,9 @@ const ChatPage: React.FC = () => {
         };
       }));
 
-      console.log('Enriched conversations:', enrichedConvs);
+      console.log('Enriched conversations:', enrichedConvs.length);
       setConversations(enrichedConvs);
       
-      // If we have an initial ID but it's not in the list (maybe new chat), we should still try to fetch it or add it?
-      // For now, if activeConversationId is set, we keep it.
       if (!activeConversationId && enrichedConvs.length > 0) {
         setActiveConversationId(enrichedConvs[0].id);
       }

@@ -72,7 +72,7 @@ const EditorFindProjectsPage: React.FC = () => {
     try {
         const { error } = await supabase
             .from('projects')
-            .update({ editor_id: user.id, status: 'assigned' }) // 'assigned' instead of 'in_progress'
+            .update({ editor_id: user.id, status: 'in_progress' })
             .eq('id', id);
         
         if (error) throw error;

@@ -139,14 +139,20 @@ const ClientFindEditorsPage: React.FC = () => {
 
   const handleChatClick = async (editorId: string) => {
       if (!user) return;
-      console.log(`ClientFindEditorsPage: Starting chat between ${user.id} and ${editorId}`);
+      
+      if (user.id === editorId) {
+          alert("You cannot chat with yourself.");
+          return;
+      }
+
+      console.log(`ClientFindEditorsPage: Starting chat between ${user.id} (role: ${user.role}) and ${editorId}`);
       try {
           const chatId = await startConversation(user.id, editorId);
           console.log('Chat started, navigating to:', chatId);
           navigate(`/client/chat?chat_id=${chatId}`);
-      } catch (error) {
+      } catch (error: any) {
           console.error('Failed to start chat:', error);
-          alert('Failed to start chat. Please try again.');
+          alert(`Failed to start chat: ${error.message || 'Unknown error'}`);
       }
   };
 
