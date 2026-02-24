@@ -1,6 +1,7 @@
 
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { supabase } from '../lib/supabase';
+import { getDisplayName } from '../utils/userUtils';
 import { User as SupabaseUser } from '@supabase/supabase-js';
 import { User } from '../types';
 
@@ -31,7 +32,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const fetchExtendedProfile = async (userId: string) => {
     const { data, error } = await supabase
       .from('profiles')
-      .select('subscription_status, plan_name, subscription_expiry, role')
+      .select('name, full_name, subscription_status, plan_name, subscription_expiry, role')
       .eq('id', userId)
       .single();
     
@@ -64,9 +65,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       role = profile.role;
     }
 
+    const finalName = getDisplayName({
+      name: profile?.name || sbUser.user_metadata?.name,
+      full_name: profile?.full_name || sbUser.user_metadata?.full_name,
+      email: sbUser.email
+    });
+
     return {
       id: sbUser.id,
-      name: name,
+      name: finalName,
       email: sbUser.email || '',
       passwordHash: '', 
       role: role,

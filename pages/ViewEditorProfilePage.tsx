@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
+import { getDisplayName } from '../utils/userUtils';
 import { ClientLayout } from '../components/ClientLayout';
 import { Button } from '../components/Button';
 import { LoadingScreen } from '../components/LoadingScreen';
@@ -120,7 +121,7 @@ const ViewEditorProfilePage: React.FC = () => {
         { id: 2, client: 'Mike T.', rating: 5, text: 'Great communication and understood the vision perfectly.', date: '1 week ago' },
     ];
 
-    const editorName = String(editor.full_name || editor.name || 'Anonymous Editor');
+    const editorName = getDisplayName(editor);
     const editorPhoto = editor.profile_image_url || editor.profile_photo || '';
     const editorRate = editor.price_per_hour ? `$${editor.price_per_hour}` : (editor.hourly_rate || '$0');
     const skillsArr = Array.isArray(editor.skills) ? editor.skills : (typeof editor.skills === 'string' ? editor.skills.split(',') : []);

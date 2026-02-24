@@ -5,6 +5,7 @@ import { EditorLayout } from '../components/EditorLayout';
 import { useAuth } from '../contexts/AuthContext';
 import { useChat } from '../contexts/ChatContext';
 import { supabase } from '../lib/supabase';
+import { getDisplayName } from '../utils/userUtils';
 import { Send, User, Clock, Search, MessageSquare } from 'lucide-react';
 
 interface Conversation {
@@ -169,9 +170,16 @@ const ChatPage: React.FC = () => {
           ...conv,
           other_user: profile ? {
             id: profile.id,
-            name: profile.full_name || profile.name || 'Unknown User',
+            name: getDisplayName({
+              name: profile.name,
+              full_name: profile.full_name,
+              email: profile.email // Note: profile might not have email, but getDisplayName handles it
+            }),
             profile_photo: profile.profile_image_url || profile.profile_photo
-          } : { id: otherUserId, name: 'Unknown User' },
+          } : { 
+            id: otherUserId, 
+            name: 'Anonymous Editor' 
+          },
           last_message: lastMsg ? {
             text: lastMsg.message,
             created_at: lastMsg.created_at

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
+import { getDisplayName } from '../utils/userUtils';
 import { ClientLayout } from '../components/ClientLayout';
 import { Button } from '../components/Button';
 import { LoadingScreen } from '../components/LoadingScreen';
@@ -213,7 +214,7 @@ const ClientFindEditorsPage: React.FC = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {filteredEditors.map((editor) => {
                     // Robust property access to prevent crashes
-                    const editorName = String(editor.full_name || editor.name || 'Anonymous Editor');
+                    const editorName = getDisplayName(editor);
                     const editorPhoto = editor.profile_image_url || editor.profile_photo;
                     const editorRate = editor.price_per_hour ? `$${editor.price_per_hour}` : (editor.hourly_rate || '$0');
                     const skillsArr = Array.isArray(editor.skills) ? editor.skills : (typeof editor.skills === 'string' ? editor.skills.split(',') : []);

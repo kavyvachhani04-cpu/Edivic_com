@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
+import { getDisplayName } from '../utils/userUtils';
 import { EditorLayout } from '../components/EditorLayout';
 import { Button } from '../components/Button';
 import { Input } from '../components/Input';
@@ -44,7 +45,11 @@ const EditorProfilePage: React.FC = () => {
           
           if (data) {
               setFormData({
-                  name: data.full_name || data.name || user.name,
+                  name: getDisplayName({
+                    name: data.name,
+                    full_name: data.full_name,
+                    email: user.email
+                  }),
                   skills: Array.isArray(data.skills) ? data.skills.join(', ') : (data.skills || ''),
                   bio: data.bio || '',
                   portfolio_url: data.portfolio_url || '',
