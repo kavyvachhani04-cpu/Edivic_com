@@ -43,6 +43,7 @@ const ChatPage: React.FC = () => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState('');
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -99,8 +100,9 @@ const ChatPage: React.FC = () => {
       return;
     }
     console.log('Fetching conversations for user:', user.id);
+    setError(null);
     try {
-      const { data: convs, error } = await supabase
+      const { data: convs, error: fetchError } = await supabase
         .from('chats')
         .select(`
           id, client_id, editor_id, created_at, updated_at
@@ -108,9 +110,14 @@ const ChatPage: React.FC = () => {
         .or(`client_id.eq.${user.id},editor_id.eq.${user.id}`)
         .order('updated_at', { ascending: false });
 
-      if (error) {
-        console.error('Error fetching chats from Supabase:', error);
-        throw error;
+      if (fetchError) {
+        console.error('Error fetching chats from Supabase:', fetchError);
+        if (fetchError.message?.includes('Failed to fetch')) {
+            setError('Connection failed. Please check your internet or Supabase configuration.');
+        } else {
+            setError(fetchError.message);
+        }
+        throw fetchError;
       }
       
       console.log('Raw conversations fetched:', convs?.length || 0);
@@ -178,8 +185,11 @@ const ChatPage: React.FC = () => {
       if (!activeConversationId && enrichedConvs.length > 0) {
         setActiveConversationId(enrichedConvs[0].id);
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error fetching conversations:', error);
+      if (error.message === 'Failed to fetch') {
+        alert('Network error: Could not connect to Supabase. Please check your internet connection or Supabase URL.');
+      }
     } finally {
       setLoading(false);
     }
@@ -201,8 +211,11 @@ const ChatPage: React.FC = () => {
       
       console.log(`Fetched ${data?.length || 0} messages`);
       setMessages(data || []);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error fetching messages:', error);
+      if (error.message === 'Failed to fetch') {
+        alert('Network error: Could not connect to Supabase. Please check your internet connection or Supabase URL.');
+      }
     }
   };
 
@@ -257,6 +270,26 @@ const ChatPage: React.FC = () => {
         <Layout title="Messages" subtitle="Loading chats...">
             <div className="flex items-center justify-center h-[calc(100vh-12rem)]">
                 <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-gold"></div>
+            </div>
+        </Layout>
+      );
+  }
+
+  if (error) {
+      const Layout = isClient ? ClientLayout : EditorLayout;
+      return (
+        <Layout title="Messages" subtitle="Connection Error">
+            <div className="flex flex-col items-center justify-center h-[calc(100vh-12rem)] text-center p-6">
+                <div className="bg-red-500/10 border border-red-500/30 p-8 rounded-2xl max-w-md">
+                    <h3 className="text-xl font-bold text-red-400 mb-2">Failed to Connect</h3>
+                    <p className="text-slate-400 mb-6">{error}</p>
+                    <button 
+                        onClick={() => fetchConversations()}
+                        className="bg-gold hover:bg-gold-dark text-black px-6 py-2 rounded-xl font-bold transition-colors"
+                    >
+                        Try Again
+                    </button>
+                </div>
             </div>
         </Layout>
       );

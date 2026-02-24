@@ -17,6 +17,7 @@ const EditorFindProjectsPage: React.FC = () => {
   const [sortOption, setSortOption] = useState<'newest' | 'budget_high' | 'deadline'>('newest');
   const [filterSkills, setFilterSkills] = useState('');
   const [isLoadingData, setIsLoadingData] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!loading) {
@@ -34,14 +35,15 @@ const EditorFindProjectsPage: React.FC = () => {
 
   const fetchProjects = async () => {
     setIsLoadingData(true);
+    setError(null);
     try {
-        const { data: projectData, error } = await supabase
+        const { data: projectData, error: fetchError } = await supabase
             .from('projects')
             .select('*')
             .eq('status', 'pending')
             .order('created_at', { ascending: false });
         
-        if (error) throw error;
+        if (fetchError) throw fetchError;
         
         // Filter projects: Show public projects (editor_id is null) OR projects assigned to me
         const fetchedProjects = (projectData || []).filter(p => !p.editor_id || p.editor_id === user.id);
@@ -60,8 +62,13 @@ const EditorFindProjectsPage: React.FC = () => {
                 setClientDetails(detailsMap);
             }
         }
-    } catch (err) {
+    } catch (err: any) {
         console.error('Error fetching projects:', err);
+        if (err.message?.includes('Failed to fetch')) {
+            setError('Connection failed. Please check your internet or Supabase configuration.');
+        } else {
+            setError(err.message || 'Failed to load projects.');
+        }
     } finally {
         setIsLoadingData(false);
     }
@@ -158,7 +165,17 @@ const EditorFindProjectsPage: React.FC = () => {
 
         {/* Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {isLoadingData ? (
+            {error ? (
+                <div className="col-span-2 text-center py-20 bg-red-500/5 rounded-2xl border border-red-500/20">
+                    <p className="text-red-400 mb-4">{error}</p>
+                    <button 
+                        onClick={() => fetchProjects()}
+                        className="bg-purple-600 hover:bg-purple-700 text-white px-6 py-2 rounded-lg font-bold transition-colors"
+                    >
+                        Try Again
+                    </button>
+                </div>
+            ) : isLoadingData ? (
                 <div className="col-span-2 text-center py-20 text-slate-500">Loading available projects...</div>
             ) : filteredProjects.length === 0 ? (
                <div className="col-span-2 text-center py-20 bg-slate-800/30 rounded-2xl border border-dashed border-white/10">

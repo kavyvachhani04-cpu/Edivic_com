@@ -1,12 +1,25 @@
 import { createClient } from '@supabase/supabase-js';
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://lhjmajfzcxorfnrsyeif.supabase.co';
-const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY || 'sb_publishable_milcB3J3Y4hGGbnUqBvAoA_Nc_01kH9';
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
-export const supabase = createClient(supabaseUrl, supabaseKey, {
-  auth: {
-    persistSession: true,
-    autoRefreshToken: true,
-    detectSessionInUrl: true
+if (!supabaseUrl || !supabaseKey) {
+  console.warn('Supabase credentials missing. Please check your .env file or environment variables.');
+}
+
+const finalUrl = supabaseUrl || 'https://lhjmajfzcxorfnrsyeif.supabase.co';
+const finalKey = supabaseKey || 'sb_publishable_milcB3J3Y4hGGbnUqBvAoA_Nc_01kH9';
+
+console.log('Initializing Supabase with URL:', finalUrl);
+
+export const supabase = createClient(
+  finalUrl,
+  finalKey,
+  {
+    auth: {
+      persistSession: true,
+      autoRefreshToken: true,
+      detectSessionInUrl: true
+    }
   }
-});
+);

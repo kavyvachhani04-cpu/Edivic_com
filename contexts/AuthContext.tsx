@@ -96,16 +96,36 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             // Handle Refresh Token Error specifically
             if (result.error) {
                 const errMsg = result.error.message || '';
+                
+                if (errMsg.includes('Failed to fetch')) {
+                    console.error('Supabase connection failed. The project might be paused or the URL is incorrect.');
+                }
+
                 // Check for various refresh token error patterns
-                if (
+                const isRefreshTokenError = 
                     errMsg.includes('Refresh Token') || 
                     errMsg.includes('refresh_token_not_found') ||
                     errMsg.includes('Invalid Refresh Token') ||
-                    errMsg.includes('not found')
-                ) {
-                    console.warn('Refresh token invalid, clearing session.');
+                    errMsg.includes('not found') ||
+                    errMsg.includes('invalid_grant');
+
+                if (isRefreshTokenError) {
+                    console.warn('Refresh token invalid, clearing session:', errMsg);
                     // Force sign out to clear invalid tokens
                     await supabase.auth.signOut().catch(() => {}); 
+                    
+                    // Manually clear any potential stale items if signOut didn't
+                    try {
+                        for (let i = 0; i < localStorage.length; i++) {
+                            const key = localStorage.key(i);
+                            if (key && (key.includes('supabase.auth.token') || key.includes('auth-token'))) {
+                                localStorage.removeItem(key);
+                            }
+                        }
+                    } catch (e) {
+                        console.error('Error clearing localStorage:', e);
+                    }
+
                     setUser(null);
                     setLoading(false);
                     return null;

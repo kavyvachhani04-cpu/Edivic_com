@@ -27,6 +27,7 @@ const ClientDashboard: React.FC = () => {
     inProgress: 0,
     completed: 0
   });
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!loading) {
@@ -44,11 +45,14 @@ const ClientDashboard: React.FC = () => {
 
   const fetchStats = async () => {
     if (!user) return;
+    setError(null);
     try {
-        const { data } = await supabase
+        const { data, error: fetchError } = await supabase
             .from('projects')
             .select('status')
             .eq('client_id', user.id);
+        
+        if (fetchError) throw fetchError;
         
         if (data) {
             const total = data.length;
@@ -57,8 +61,11 @@ const ClientDashboard: React.FC = () => {
             
             setStats({ total, inProgress, completed });
         }
-    } catch (e) {
+    } catch (e: any) {
         console.error('Error fetching stats:', e);
+        if (e.message?.includes('Failed to fetch')) {
+            setError('Connection failed. Please check your internet or Supabase configuration.');
+        }
     }
   };
 
@@ -66,6 +73,18 @@ const ClientDashboard: React.FC = () => {
 
   return (
     <ClientLayout title={`Welcome, ${user.name.split(' ')[0]}`} subtitle="Manage your video projects and find editors.">
+        
+        {error && (
+            <div className="mb-8 bg-red-500/10 border border-red-500/30 p-4 rounded-xl flex items-center justify-between">
+                <p className="text-red-400 text-sm">{error}</p>
+                <button 
+                    onClick={() => fetchStats()}
+                    className="text-xs font-bold text-red-400 hover:underline"
+                >
+                    Retry
+                </button>
+            </div>
+        )}
         
         {/* Stats Section */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
