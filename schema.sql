@@ -70,9 +70,9 @@ begin
     end if;
 end $$;
 
--- 4. INQUIRIES TABLE (Keeping this from previous context)
+-- 4. INQUIRIES TABLE
 create table if not exists public.inquiries (
-  id uuid default uuid_generate_v4() primary key,
+  id uuid default gen_random_uuid() primary key,
   name text not null,
   email text not null,
   message text not null,
@@ -99,3 +99,68 @@ create policy "Admins can delete inquiries" on public.inquiries for delete using
       where id = auth.uid() and role = 'admin'
     )
 );
+
+-- 5. CHATS AND MESSAGES
+create table if not exists public.chats (
+    id uuid default gen_random_uuid() primary key,
+    client_id uuid not null references auth.users(id) on delete cascade,
+    editor_id uuid not null references auth.users(id) on delete cascade,
+    created_at timestamp with time zone default timezone('utc'::text, now()) not null,
+    updated_at timestamp with time zone default timezone('utc'::text, now()) not null,
+    unique(client_id, editor_id)
+);
+
+create table if not exists public.messages (
+    id uuid default gen_random_uuid() primary key,
+    chat_id uuid not null references public.chats(id) on delete cascade,
+    sender_id uuid not null references auth.users(id) on delete cascade,
+    sender_role text not null check (sender_role in ('client', 'editor')),
+    message text not null,
+    is_read boolean default false,
+    created_at timestamp with time zone default timezone('utc'::text, now()) not null
+);
+
+-- Enable RLS for chats and messages
+alter table public.chats enable row level security;
+alter table public.messages enable row level security;
+
+-- Policies for chats
+drop policy if exists "Users can view their own chats" on public.chats;
+create policy "Users can view their own chats"
+    on public.chats for select
+    using (auth.uid() = client_id or auth.uid() = editor_id);
+
+drop policy if exists "Users can insert their own chats" on public.chats;
+create policy "Users can insert their own chats"
+    on public.chats for insert
+    with check (auth.uid() = client_id or auth.uid() = editor_id);
+
+-- Policies for messages
+drop policy if exists "Users can view messages in their chats" on public.messages;
+create policy "Users can view messages in their chats"
+    on public.messages for select
+    using (
+        exists (
+            select 1 from public.chats c
+            where c.id = messages.chat_id
+            and (c.client_id = auth.uid() or c.editor_id = auth.uid())
+        )
+    );
+
+drop policy if exists "Users can insert messages in their chats" on public.messages;
+create policy "Users can insert messages in their chats"
+    on public.messages for insert
+    with check (
+        auth.uid() = sender_id and
+        exists (
+            select 1 from public.chats c
+            where c.id = messages.chat_id
+            and (c.client_id = auth.uid() or c.editor_id = auth.uid())
+        )
+    );
+
+-- Indexes
+create index if not exists idx_chats_client_id on public.chats(client_id);
+create index if not exists idx_chats_editor_id on public.chats(editor_id);
+create index if not exists idx_messages_chat_id on public.messages(chat_id);
+create index if not exists idx_messages_created_at on public.messages(created_at);
