@@ -6,7 +6,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { useChat } from '../contexts/ChatContext';
 import { supabase } from '../lib/supabase';
 import { getDisplayName } from '../utils/userUtils';
-import { Send, User, Clock, Search, MessageSquare } from 'lucide-react';
+import { Send, User, Clock, Search, MessageSquare, Paperclip, FileText, Image as ImageIcon, Download, Loader2, X } from 'lucide-react';
 
 interface Conversation {
   id: string;
@@ -30,6 +30,9 @@ interface Message {
   sender_id: string;
   sender_role: 'client' | 'editor';
   message: string;
+  file_url?: string;
+  file_name?: string;
+  file_type?: string;
   created_at: string;
 }
 
@@ -43,10 +46,13 @@ const ChatPage: React.FC = () => {
   const [activeConversationId, setActiveConversationId] = useState<string | null>(initialConversationId);
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState('');
+  const [isUploading, setIsUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const isClient = user?.role === 'client';
 
@@ -227,9 +233,9 @@ const ChatPage: React.FC = () => {
     }
   };
 
-  const handleSendMessage = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newMessage.trim() || !activeConversationId || !user) return;
+  const handleSendMessage = async (e?: React.FormEvent, fileData?: { url: string, name: string, type: string }) => {
+    if (e) e.preventDefault();
+    if (!activeConversationId || !user || (!newMessage.trim() && !fileData)) return;
 
     const messageText = newMessage.trim();
     setNewMessage('');
@@ -241,7 +247,10 @@ const ChatPage: React.FC = () => {
           chat_id: activeConversationId,
           sender_id: user.id,
           sender_role: user.role,
-          message: messageText
+          message: messageText || (fileData ? `Sent a file: ${fileData.name}` : ''),
+          file_url: fileData?.url,
+          file_name: fileData?.name,
+          file_type: fileData?.type
         }]);
 
       if (error) throw error;
@@ -252,7 +261,7 @@ const ChatPage: React.FC = () => {
           return {
             ...c,
             last_message: {
-              text: messageText,
+              text: messageText || (fileData ? `Sent a file: ${fileData.name}` : ''),
               created_at: new Date().toISOString()
             }
           };
@@ -261,7 +270,66 @@ const ChatPage: React.FC = () => {
       }));
     } catch (error) {
       console.error('Error sending message:', error);
-      setNewMessage(messageText); // Restore message on failure
+      if (!fileData) setNewMessage(messageText); // Restore message on failure if it wasn't a file-only message
+    }
+  };
+
+  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !user || !activeConversationId) return;
+
+    // File size limit: 10MB
+    if (file.size > 10 * 1024 * 1024) {
+      alert('File size exceeds 10MB limit.');
+      return;
+    }
+
+    // Allowed types
+    const allowedTypes = [
+      'image/jpeg', 'image/png', 'image/jpg',
+      'application/pdf',
+      'application/msword',
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+    ];
+
+    if (!allowedTypes.includes(file.type)) {
+      alert('Invalid file type. Please upload an image, PDF, or Word document.');
+      return;
+    }
+
+    setIsUploading(true);
+    setUploadProgress(0);
+
+    try {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${Math.random().toString(36).substring(2)}_${Date.now()}.${fileExt}`;
+      const filePath = `${activeConversationId}/${fileName}`;
+
+      const { data, error: uploadError } = await supabase.storage
+        .from('chat-attachments')
+        .upload(filePath, file, {
+          cacheControl: '3600',
+          upsert: false
+        });
+
+      if (uploadError) throw uploadError;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('chat-attachments')
+        .getPublicUrl(filePath);
+
+      await handleSendMessage(undefined, {
+        url: publicUrl,
+        name: file.name,
+        type: file.type
+      });
+
+    } catch (err: any) {
+      console.error('Upload error:', err);
+      alert('Failed to upload file: ' + err.message);
+    } finally {
+      setIsUploading(false);
+      if (fileInputRef.current) fileInputRef.current.value = '';
     }
   };
 
@@ -421,7 +489,50 @@ const ChatPage: React.FC = () => {
                               : 'bg-zinc-800 text-white rounded-tl-sm border border-white/5'
                           }`}
                         >
-                          <p className="text-sm whitespace-pre-wrap break-words">{msg.message}</p>
+                          {msg.file_url && (
+                            <div className="mb-2">
+                              {msg.file_type?.startsWith('image/') ? (
+                                <div className="relative group">
+                                  <img 
+                                    src={msg.file_url} 
+                                    alt={msg.file_name} 
+                                    className="max-w-full rounded-lg border border-white/10 cursor-pointer hover:opacity-90 transition-opacity"
+                                    onClick={() => window.open(msg.file_url, '_blank')}
+                                  />
+                                  <a 
+                                    href={msg.file_url} 
+                                    download={msg.file_name}
+                                    className="absolute top-2 right-2 p-1.5 bg-black/50 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity text-white"
+                                    onClick={(e) => e.stopPropagation()}
+                                  >
+                                    <Download className="h-4 w-4" />
+                                  </a>
+                                </div>
+                              ) : (
+                                <div className={`flex items-center gap-3 p-3 rounded-xl border ${isMe ? 'bg-black/10 border-black/10' : 'bg-white/5 border-white/10'}`}>
+                                  <div className={`p-2 rounded-lg ${isMe ? 'bg-black/20' : 'bg-white/10'}`}>
+                                    {msg.file_type === 'application/pdf' ? <FileText className="h-5 w-5" /> : <ImageIcon className="h-5 w-5" />}
+                                  </div>
+                                  <div className="flex-1 min-w-0">
+                                    <p className="text-xs font-bold truncate">{msg.file_name}</p>
+                                    <p className="text-[10px] opacity-50 uppercase">{msg.file_type?.split('/')[1] || 'File'}</p>
+                                  </div>
+                                  <a 
+                                    href={msg.file_url} 
+                                    download={msg.file_name}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className={`p-2 rounded-lg transition-colors ${isMe ? 'hover:bg-black/20' : 'hover:bg-white/10'}`}
+                                  >
+                                    <Download className="h-4 w-4" />
+                                  </a>
+                                </div>
+                              )}
+                            </div>
+                          )}
+                          {msg.message && (
+                            <p className="text-sm whitespace-pre-wrap break-words">{msg.message}</p>
+                          )}
                         </div>
                         <div className="flex items-center gap-1 mt-1 px-1 text-[10px] text-slate-500">
                           <Clock className="h-3 w-3" />
@@ -437,17 +548,33 @@ const ChatPage: React.FC = () => {
 
             {/* Input Area */}
             <div className="p-4 bg-zinc-950 border-t border-white/10">
-              <form onSubmit={handleSendMessage} className="flex gap-2">
+              <form onSubmit={(e) => handleSendMessage(e)} className="flex gap-2 items-center">
+                <input 
+                  type="file" 
+                  ref={fileInputRef}
+                  onChange={handleFileSelect}
+                  className="hidden"
+                  accept=".jpg,.jpeg,.png,.pdf,.doc,.docx"
+                />
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={isUploading}
+                  className="p-3 bg-zinc-900 border border-white/10 rounded-xl text-slate-400 hover:text-gold hover:border-gold/50 transition-all disabled:opacity-50"
+                >
+                  {isUploading ? <Loader2 className="h-5 w-5 animate-spin text-gold" /> : <Paperclip className="h-5 w-5" />}
+                </button>
                 <input
                   type="text"
                   value={newMessage}
                   onChange={(e) => setNewMessage(e.target.value)}
-                  placeholder="Type your message..."
-                  className="flex-1 bg-zinc-900 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-gold/50 transition-colors"
+                  placeholder={isUploading ? "Uploading file..." : "Type your message..."}
+                  disabled={isUploading}
+                  className="flex-1 bg-zinc-900 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-gold/50 transition-colors disabled:opacity-50"
                 />
                 <button
                   type="submit"
-                  disabled={!newMessage.trim()}
+                  disabled={(!newMessage.trim() && !isUploading) || isUploading}
                   className="bg-gold hover:bg-gold-dark text-black rounded-xl px-6 py-3 font-bold transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
                 >
                   <Send className="h-4 w-4" />
