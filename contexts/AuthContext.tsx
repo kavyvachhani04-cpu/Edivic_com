@@ -69,7 +69,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       name: profile?.name || sbUser.user_metadata?.name,
       full_name: profile?.full_name || sbUser.user_metadata?.full_name,
       email: sbUser.email
-    });
+    }, role === 'client' ? 'Client' : 'Editor');
 
     return {
       id: sbUser.id,

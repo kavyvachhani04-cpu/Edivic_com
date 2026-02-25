@@ -147,6 +147,7 @@ const ChatPage: React.FC = () => {
       // Fetch other user details
       const enrichedConvs = await Promise.all(allConvs.map(async (conv) => {
         const otherUserId = user.id === conv.client_id ? conv.editor_id : conv.client_id;
+        const otherUserRole = user.id === conv.client_id ? 'Editor' : 'Client';
         console.log(`Fetching profile for other user: ${otherUserId} in chat ${conv.id}`);
         
         const { data: profile, error: profileError } = await supabase
@@ -180,11 +181,11 @@ const ChatPage: React.FC = () => {
               name: profile.name,
               full_name: profile.full_name,
               email: profile.email // Note: profile might not have email, but getDisplayName handles it
-            }),
+            }, otherUserRole),
             profile_photo: profile.profile_image_url || profile.profile_photo
           } : { 
             id: otherUserId, 
-            name: 'Anonymous Editor' 
+            name: otherUserRole 
           },
           last_message: lastMsg ? {
             text: lastMsg.message,
@@ -479,7 +480,7 @@ const ChatPage: React.FC = () => {
                       <div className={`flex flex-col ${isMe ? 'items-end' : 'items-start'} max-w-[70%]`}>
                         {showAvatar && (
                           <span className="text-[10px] text-slate-500 mb-1 px-1">
-                            {isMe ? 'You' : activeConversation.other_user?.name}
+                            {isMe ? user?.name : activeConversation.other_user?.name}
                           </span>
                         )}
                         <div 

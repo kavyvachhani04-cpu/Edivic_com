@@ -12,8 +12,8 @@ export const getDisplayName = (user: {
   full_name?: string; 
   username?: string; 
   email?: string; 
-} | null | undefined): string => {
-  if (!user) return 'Anonymous Editor';
+} | null | undefined, fallback: string = 'Editor'): string => {
+  if (!user) return fallback;
   
   const name = user.full_name || user.name;
   if (name && name.trim() !== '') return name;
@@ -24,5 +24,5 @@ export const getDisplayName = (user: {
     return user.email.split('@')[0];
   }
   
-  return 'Anonymous Editor';
+  return fallback;
 };
