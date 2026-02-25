@@ -16,7 +16,6 @@ interface Conversation {
   other_user?: {
     id: string;
     name: string;
-    username?: string;
     profile_photo?: string;
   };
   last_message?: {
@@ -40,7 +39,7 @@ interface Message {
 const ChatPage: React.FC = () => {
   const { user } = useAuth();
   const { markAsRead } = useChat();
-  const [searchParams, setSearchParams] = useSearchParams();
+  const [searchParams] = useSearchParams();
   const initialConversationId = searchParams.get('chat_id') || searchParams.get('conversation_id');
   
   const [conversations, setConversations] = useState<Conversation[]>([]);
@@ -60,55 +59,6 @@ const ChatPage: React.FC = () => {
   useEffect(() => {
     if (user) {
       fetchConversations();
-      
-      // Global subscription to messages to update conversation list (last message, sorting)
-      const globalMsgSubscription = supabase
-        .channel('global-messages-list')
-        .on('postgres_changes', {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'messages'
-        }, async (payload) => {
-          const newMessage = payload.new;
-          
-          // If message is for a conversation we have, update it
-          setConversations(prev => {
-            const exists = prev.some(c => c.id === newMessage.chat_id);
-            if (exists) {
-              const updated = prev.map(c => {
-                if (c.id === newMessage.chat_id) {
-                  return {
-                    ...c,
-                    updated_at: newMessage.created_at,
-                    last_message: {
-                      text: newMessage.message,
-                      created_at: newMessage.created_at
-                    }
-                  };
-                }
-                return c;
-              });
-              return [...updated].sort((a, b) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime());
-            } else {
-              // If it's a new conversation for the user, refresh the whole list
-              // We check if the user is part of this chat first
-              supabase.from('chats')
-                .select('id')
-                .eq('id', newMessage.chat_id)
-                .or(`client_id.eq.${user.id},editor_id.eq.${user.id}`)
-                .single()
-                .then(({ data }) => {
-                  if (data) fetchConversations();
-                });
-              return prev;
-            }
-          });
-        })
-        .subscribe();
-
-      return () => {
-        supabase.removeChannel(globalMsgSubscription);
-      };
     }
   }, [user]);
 
@@ -202,7 +152,7 @@ const ChatPage: React.FC = () => {
         
         const { data: profile, error: profileError } = await supabase
           .from('profiles')
-          .select('id, name, full_name, username, profile_photo, profile_image_url, email')
+          .select('id, name, full_name, profile_photo, profile_image_url, email')
           .eq('id', otherUserId)
           .single();
           
@@ -230,10 +180,8 @@ const ChatPage: React.FC = () => {
             name: getDisplayName({
               name: profile.name,
               full_name: profile.full_name,
-              username: profile.username,
               email: profile.email // Note: profile might not have email, but getDisplayName handles it
             }, otherUserRole),
-            username: profile.username,
             profile_photo: profile.profile_image_url || profile.profile_photo
           } : { 
             id: otherUserId, 
@@ -308,23 +256,19 @@ const ChatPage: React.FC = () => {
 
       if (error) throw error;
       
-      // Update local conversation last message and sort
-      setConversations(prev => {
-        const updated = prev.map(c => {
-          if (c.id === activeConversationId) {
-            return {
-              ...c,
-              updated_at: new Date().toISOString(),
-              last_message: {
-                text: messageText || (fileData ? `Sent a file: ${fileData.name}` : ''),
-                created_at: new Date().toISOString()
-              }
-            };
-          }
-          return c;
-        });
-        return [...updated].sort((a, b) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime());
-      });
+      // Update local conversation last message
+      setConversations(prev => prev.map(c => {
+        if (c.id === activeConversationId) {
+          return {
+            ...c,
+            last_message: {
+              text: messageText || (fileData ? `Sent a file: ${fileData.name}` : ''),
+              created_at: new Date().toISOString()
+            }
+          };
+        }
+        return c;
+      }));
     } catch (error) {
       console.error('Error sending message:', error);
       if (!fileData) setNewMessage(messageText); // Restore message on failure if it wasn't a file-only message
@@ -388,15 +332,6 @@ const ChatPage: React.FC = () => {
       setIsUploading(false);
       if (fileInputRef.current) fileInputRef.current.value = '';
     }
-  };
-
-  const formatFullDate = (dateString: string) => {
-    const date = new Date(dateString);
-    const day = date.getDate().toString().padStart(2, '0');
-    const month = date.toLocaleString('en-GB', { month: 'short' });
-    const year = date.getFullYear();
-    const time = date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
-    return `${day} ${month} ${year}, ${time}`;
   };
 
   const formatTime = (dateString: string) => {
@@ -463,10 +398,7 @@ const ChatPage: React.FC = () => {
             conversations.map(conv => (
               <div 
                 key={conv.id}
-                onClick={() => {
-                  setActiveConversationId(conv.id);
-                  setSearchParams({ chat_id: conv.id });
-                }}
+                onClick={() => setActiveConversationId(conv.id)}
                 className={`p-4 border-b border-white/5 cursor-pointer transition-colors flex items-center gap-3 ${activeConversationId === conv.id ? 'bg-gold/10 border-l-2 border-l-gold' : 'hover:bg-white/5'}`}
               >
                 <div className="relative">
@@ -548,7 +480,7 @@ const ChatPage: React.FC = () => {
                       <div className={`flex flex-col ${isMe ? 'items-end' : 'items-start'} max-w-[70%]`}>
                         {showAvatar && (
                           <span className="text-[10px] text-slate-500 mb-1 px-1">
-                            {isMe ? (user?.username || user?.name) : (activeConversation.other_user?.username || activeConversation.other_user?.name)}
+                            {isMe ? user?.name : activeConversation.other_user?.name}
                           </span>
                         )}
                         <div 
@@ -605,7 +537,7 @@ const ChatPage: React.FC = () => {
                         </div>
                         <div className="flex items-center gap-1 mt-1 px-1 text-[10px] text-slate-500">
                           <Clock className="h-3 w-3" />
-                          {formatFullDate(msg.created_at)}
+                          {formatTime(msg.created_at)}
                         </div>
                       </div>
                     </div>

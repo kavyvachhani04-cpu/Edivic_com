@@ -6,7 +6,6 @@ import { getDisplayName } from '../utils/userUtils';
 import { EditorLayout } from '../components/EditorLayout';
 import { Button } from '../components/Button';
 import { Input } from '../components/Input';
-import { EditorDemoVideos } from '../components/EditorDemoVideos';
 import { Save, User, AlignLeft, Wrench, Globe, Monitor, Clock } from 'lucide-react';
 
 const EditorProfilePage: React.FC = () => {
@@ -226,11 +225,6 @@ const EditorProfilePage: React.FC = () => {
                         </Button>
                     </div>
                 </form>
-            </div>
-
-            {/* Demo Videos Section */}
-            <div className="glass p-8 rounded-2xl border border-white/5 mt-8">
-                <EditorDemoVideos editorId={user.id} />
             </div>
         </div>
     </EditorLayout>

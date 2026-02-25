@@ -32,7 +32,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const fetchExtendedProfile = async (userId: string) => {
     const { data, error } = await supabase
       .from('profiles')
-      .select('name, full_name, username, subscription_status, plan_name, subscription_expiry, role')
+      .select('name, full_name, subscription_status, plan_name, subscription_expiry, role')
       .eq('id', userId)
       .single();
     
@@ -74,7 +74,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return {
       id: sbUser.id,
       name: finalName,
-      username: profile?.username,
       email: sbUser.email || '',
       passwordHash: '', 
       role: role,
