@@ -40,7 +40,7 @@ const EditorFindProjectsPage: React.FC = () => {
         const { data: projectData, error: fetchError } = await supabase
             .from('projects')
             .select('*')
-            .eq('status', 'pending')
+            .eq('status', 'open')
             .order('created_at', { ascending: false });
         
         if (fetchError) throw fetchError;
@@ -79,12 +79,19 @@ const EditorFindProjectsPage: React.FC = () => {
     try {
         const { error } = await supabase
             .from('projects')
-            .update({ editor_id: user.id, status: 'in_progress' })
-            .eq('id', id);
+            .update({ 
+                editor_id: user.id, 
+                status: 'pending' // Changed from in_progress to pending as per user request
+            })
+            .eq('id', id)
+            .eq('status', 'open'); // Ensure it's still open
         
         if (error) throw error;
         navigate('/editor/my-projects');
-    } catch(e) { console.error(e); }
+    } catch(e) { 
+        console.error(e);
+        alert('Failed to accept project. It might have been taken by another editor.');
+    }
   };
 
   const handleChatClick = async (clientId: string, projectId: string) => {

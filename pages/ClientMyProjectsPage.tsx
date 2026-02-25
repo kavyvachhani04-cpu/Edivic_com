@@ -5,7 +5,7 @@ import { supabase } from '../lib/supabase';
 import { ClientLayout } from '../components/ClientLayout';
 import { Button } from '../components/Button';
 import { ConfirmationModal } from '../components/ConfirmationModal';
-import { Briefcase, Calendar, User, Clock, Trash2, XCircle } from 'lucide-react';
+import { Briefcase, Calendar, User, Clock, Trash2, XCircle, ExternalLink, CheckCircle, AlertCircle } from 'lucide-react';
 import { Project } from '../types';
 
 const ClientMyProjectsPage: React.FC = () => {
@@ -16,6 +16,7 @@ const ClientMyProjectsPage: React.FC = () => {
   const [isCancelModalOpen, setIsCancelModalOpen] = useState(false);
   const [projectToCancel, setProjectToCancel] = useState<string | null>(null);
   const [isCancelling, setIsCancelling] = useState(false);
+  const [isActionLoading, setIsActionLoading] = useState<string | null>(null);
 
   useEffect(() => {
     if (!loading) {
@@ -66,6 +67,53 @@ const ClientMyProjectsPage: React.FC = () => {
     setIsCancelModalOpen(true);
   };
 
+  const handleApprove = async (projectId: string) => {
+    setIsActionLoading(projectId);
+    try {
+        const { error } = await supabase
+            .from('projects')
+            .update({ status: 'completed' })
+            .eq('id', projectId);
+        
+        if (error) throw error;
+        
+        setProjects(prev => prev.filter(p => p.id !== projectId));
+        alert('Project approved and completed!');
+    } catch (err) {
+        console.error('Error approving project:', err);
+        alert('Failed to approve project.');
+    } finally {
+        setIsActionLoading(null);
+    }
+  };
+
+  const handleReject = async (projectId: string) => {
+    if (!confirm('Are you sure you want to reject this submission? The project will be returned to the "Open" pool and the current editor will be unassigned.')) return;
+    
+    setIsActionLoading(projectId);
+    try {
+        const { error } = await supabase
+            .from('projects')
+            .update({ 
+                status: 'open', 
+                editor_id: null, 
+                submission_url: null 
+            })
+            .eq('id', projectId);
+        
+        if (error) throw error;
+        
+        setProjects(prev => prev.map(p => 
+            p.id === projectId ? { ...p, status: 'open', editor_id: null, submission_url: null } : p
+        ));
+        alert('Submission rejected. Project is now open for other editors.');
+    } catch (err) {
+        console.error('Error rejecting project:', err);
+        alert('Failed to reject project.');
+    } finally {
+        setIsActionLoading(null);
+    }
+  };
   const confirmCancel = async () => {
     if (!projectToCancel) return;
     setIsCancelling(true);
@@ -115,17 +163,57 @@ const ClientMyProjectsPage: React.FC = () => {
                                 </div>
                             </div>
                             <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wide border ${
-                                project.status === 'in_progress' ? 'bg-blue-500/10 text-blue-400 border-blue-500/20' : 
+                                project.status === 'in_progress' || project.status === 'pending' ? 'bg-blue-500/10 text-blue-400 border-blue-500/20' : 
+                                project.status === 'submitted' ? 'bg-amber-500/10 text-amber-400 border-amber-500/20' :
                                 project.status === 'cancelled' ? 'bg-red-500/10 text-red-400 border-red-500/20' :
-                                'bg-amber-500/10 text-amber-400 border-amber-500/20'
+                                'bg-slate-500/10 text-slate-400 border-slate-500/20'
                             }`}>
-                                {project.status.replace('_', ' ')}
+                                {project.status === 'submitted' ? 'Review Required' : project.status.replace('_', ' ')}
                             </span>
                         </div>
                         
                         <p className="text-slate-300 text-sm mb-6 line-clamp-2">{project.description}</p>
                         
-                        <div className="pt-4 border-t border-white/5 flex items-center justify-between">
+                        {project.status === 'submitted' && (
+                            <div className="mt-6 p-4 bg-amber-500/5 rounded-xl border border-amber-500/20">
+                                <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
+                                    <div className="flex-1">
+                                        <h4 className="text-amber-400 font-bold text-sm mb-1 flex items-center">
+                                            <AlertCircle className="h-4 w-4 mr-2" /> Editor has submitted work
+                                        </h4>
+                                        <a 
+                                            href={project.submission_url} 
+                                            target="_blank" 
+                                            rel="noopener noreferrer"
+                                            className="text-white text-xs hover:underline flex items-center gap-1"
+                                        >
+                                            View Submission <ExternalLink className="h-3 w-3" />
+                                        </a>
+                                    </div>
+                                    <div className="flex gap-2 w-full sm:w-auto">
+                                        <Button 
+                                            size="sm" 
+                                            className="bg-green-600 hover:bg-green-700 border-none text-xs flex-1 sm:flex-none"
+                                            onClick={() => handleApprove(project.id)}
+                                            disabled={isActionLoading === project.id}
+                                        >
+                                            <CheckCircle className="h-3 w-3 mr-1.5" /> Approve
+                                        </Button>
+                                        <Button 
+                                            size="sm" 
+                                            variant="outline"
+                                            className="border-red-500/30 text-red-400 hover:bg-red-500/10 text-xs flex-1 sm:flex-none"
+                                            onClick={() => handleReject(project.id)}
+                                            disabled={isActionLoading === project.id}
+                                        >
+                                            <Trash2 className="h-3 w-3 mr-1.5" /> Reject
+                                        </Button>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
+                        <div className="pt-4 border-t border-white/5 flex items-center justify-between mt-6">
                             {project.editor_id ? (
                                 <div className="flex items-center text-sm text-white">
                                     <User className="h-4 w-4 mr-2 text-primary-400" />

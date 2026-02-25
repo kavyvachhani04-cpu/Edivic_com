@@ -4,7 +4,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
 import { EditorLayout } from '../components/EditorLayout';
 import { Button } from '../components/Button';
-import { Briefcase, Calendar, DollarSign, Send, MessageSquare } from 'lucide-react';
+import { Briefcase, Calendar, DollarSign, Send, MessageSquare, Clock } from 'lucide-react';
 import { Project } from '../types';
 import { startConversation } from '../lib/chat';
 
@@ -35,7 +35,7 @@ const EditorMyProjectsPage: React.FC = () => {
         .from('projects')
         .select('*')
         .eq('editor_id', user.id)
-        .eq('status', 'in_progress')
+        .in('status', ['pending', 'submitted']) // Show both pending and submitted
         .order('created_at', { ascending: false });
     setProjects(data || []);
   };
@@ -48,16 +48,19 @@ const EditorMyProjectsPage: React.FC = () => {
     try {
         const { error } = await supabase
             .from('projects')
-            .update({ submission_url: url, status: 'completed' })
+            .update({ submission_url: url, status: 'submitted' }) // Changed from completed to submitted
             .eq('id', id);
 
         if (error) throw error;
         
-        // Remove from list locally
-        setProjects(prev => prev.filter(p => p.id !== id));
-        // Optional: Navigate to completed or show toast
+        // Update local state instead of removing, to show "Waiting for Review"
+        setProjects(prev => prev.map(p => 
+            p.id === id ? { ...p, status: 'submitted', submission_url: url } : p
+        ));
+        alert('Work submitted successfully! Waiting for client review.');
     } catch(e) { 
         console.error(e); 
+        alert('Failed to submit work.');
     } finally {
         setLoadingId(null);
     }
@@ -99,8 +102,12 @@ const EditorMyProjectsPage: React.FC = () => {
                                 </div>
                             </div>
                             <div className="flex flex-col items-end gap-2">
-                                <span className="px-3 py-1 rounded-full text-xs font-bold uppercase bg-purple-500/20 text-purple-400 border border-purple-500/30 self-start">
-                                    In Progress
+                                <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase border self-start ${
+                                    project.status === 'submitted' 
+                                    ? 'bg-amber-500/10 text-amber-400 border-amber-500/30' 
+                                    : 'bg-purple-500/20 text-purple-400 border-purple-500/30'
+                                }`}>
+                                    {project.status === 'submitted' ? 'Waiting for Review' : 'In Progress'}
                                 </span>
                                 <button 
                                     onClick={() => handleChatClick(project.client_id, project.id)}
@@ -116,31 +123,43 @@ const EditorMyProjectsPage: React.FC = () => {
                             <p className="text-slate-300 text-sm leading-relaxed whitespace-pre-wrap">{project.description}</p>
                         </div>
 
-                        <div className="bg-slate-800 p-4 rounded-lg border border-slate-700">
-                            <label className="block text-xs font-bold text-slate-400 uppercase mb-2">
-                                Project Completion
-                            </label>
-                            <div className="flex flex-col sm:flex-row gap-3">
-                                <input 
-                                    type="text" 
-                                    placeholder="Paste your Google Drive / Dropbox link here..." 
-                                    className="flex-1 bg-slate-900 border border-slate-600 rounded-lg px-4 py-2 text-sm text-white focus:border-purple-500 focus:outline-none placeholder-slate-600"
-                                    value={submissionUrls[project.id] || ''}
-                                    onChange={(e) => setSubmissionUrls(prev => ({ ...prev, [project.id]: e.target.value }))}
-                                />
-                                <Button 
-                                    onClick={() => handleSubmitWork(project.id)}
-                                    disabled={!submissionUrls[project.id] || loadingId === project.id}
-                                    className="bg-green-600 hover:bg-green-700 border-none whitespace-nowrap"
-                                >
-                                    {loadingId === project.id ? 'Submitting...' : 'Mark as Completed'}
-                                    <Send className="ml-2 h-4 w-4" />
-                                </Button>
+                        {project.status === 'pending' ? (
+                            <div className="bg-slate-800 p-4 rounded-lg border border-slate-700">
+                                <label className="block text-xs font-bold text-slate-400 uppercase mb-2">
+                                    Project Completion
+                                </label>
+                                <div className="flex flex-col sm:flex-row gap-3">
+                                    <input 
+                                        type="text" 
+                                        placeholder="Paste your Google Drive / Dropbox link here..." 
+                                        className="flex-1 bg-slate-900 border border-slate-600 rounded-lg px-4 py-2 text-sm text-white focus:border-purple-500 focus:outline-none placeholder-slate-600"
+                                        value={submissionUrls[project.id] || ''}
+                                        onChange={(e) => setSubmissionUrls(prev => ({ ...prev, [project.id]: e.target.value }))}
+                                    />
+                                    <Button 
+                                        onClick={() => handleSubmitWork(project.id)}
+                                        disabled={!submissionUrls[project.id] || loadingId === project.id}
+                                        className="bg-green-600 hover:bg-green-700 border-none whitespace-nowrap"
+                                    >
+                                        {loadingId === project.id ? 'Submitting...' : 'Submit for Review'}
+                                        <Send className="ml-2 h-4 w-4" />
+                                    </Button>
+                                </div>
+                                <p className="text-xs text-slate-500 mt-2">
+                                    * Ensure the link is accessible. Once submitted, the client will review your work.
+                                </p>
                             </div>
-                            <p className="text-xs text-slate-500 mt-2">
-                                * Ensure the link is accessible. Once marked completed, the client will be notified.
-                            </p>
-                        </div>
+                        ) : (
+                            <div className="bg-amber-500/5 p-4 rounded-lg border border-amber-500/20">
+                                <p className="text-amber-400 text-sm font-medium flex items-center">
+                                    <Clock className="h-4 w-4 mr-2" /> 
+                                    Work submitted. Waiting for client to approve or request changes.
+                                </p>
+                                <p className="text-slate-400 text-xs mt-1 break-all">
+                                    Link: <a href={project.submission_url} target="_blank" rel="noopener noreferrer" className="text-purple-400 hover:underline">{project.submission_url}</a>
+                                </p>
+                            </div>
+                        )}
                     </div>
                 ))
             )}

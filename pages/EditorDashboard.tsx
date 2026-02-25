@@ -40,7 +40,7 @@ const EditorDashboard: React.FC = () => {
           const { data } = await supabase
             .from('projects')
             .select('*')
-            .eq('status', 'pending')
+            .eq('status', 'open')
             .order('created_at', { ascending: false })
             .limit(3);
           
@@ -59,14 +59,14 @@ const EditorDashboard: React.FC = () => {
         const { count: availableCount } = await supabase
             .from('projects')
             .select('*', { count: 'exact', head: true })
-            .eq('status', 'pending');
+            .eq('status', 'open');
 
-        // Fetch Active
+        // Fetch Active (Pending or Submitted)
         const { count: activeCount } = await supabase
             .from('projects')
             .select('*', { count: 'exact', head: true })
             .eq('editor_id', user.id)
-            .eq('status', 'in_progress');
+            .in('status', ['pending', 'submitted']);
 
         // Fetch Completed
         const { count: completedCount } = await supabase

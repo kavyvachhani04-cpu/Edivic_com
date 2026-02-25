@@ -60,7 +60,7 @@ const ClientPostProjectPage: React.FC = () => {
           deadline: formData.deadline,
           category: formData.category,
           skills: formData.skills,
-          status: 'pending'
+          status: hireId ? 'pending' : 'open' // If direct hire, set to pending immediately
       };
 
       if (hireId) {

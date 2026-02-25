@@ -145,7 +145,7 @@ const ChatPage: React.FC = () => {
         
         const { data: profile, error: profileError } = await supabase
           .from('profiles')
-          .select('id, name, full_name, profile_photo, profile_image_url')
+          .select('id, name, full_name, profile_photo, profile_image_url, email')
           .eq('id', otherUserId)
           .single();
           
