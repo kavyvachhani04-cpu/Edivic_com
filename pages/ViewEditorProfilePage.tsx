@@ -8,6 +8,7 @@ import { LoadingScreen } from '../components/LoadingScreen';
 import { User, Star, BadgeCheck, Zap, MessageSquare, Globe, Clock, Monitor, Wrench, Play, ThumbsUp, Calendar, CheckCircle } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { startConversation } from '../lib/chat';
+import { ClientDemoVideos } from '../components/ClientDemoVideos';
 
 interface EditorProfile {
     id: string;
@@ -247,6 +248,9 @@ const ViewEditorProfilePage: React.FC = () => {
                         </div>
                     </div>
                 </div>
+
+                {/* Demo Videos Section */}
+                <ClientDemoVideos editorId={editor.id} />
 
                 {/* Portfolio Section */}
                 <div className="mb-8">

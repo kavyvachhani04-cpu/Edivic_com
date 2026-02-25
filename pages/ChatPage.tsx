@@ -16,6 +16,7 @@ interface Conversation {
   other_user?: {
     id: string;
     name: string;
+    username?: string;
     profile_photo?: string;
   };
   last_message?: {
@@ -152,7 +153,7 @@ const ChatPage: React.FC = () => {
         
         const { data: profile, error: profileError } = await supabase
           .from('profiles')
-          .select('id, name, full_name, profile_photo, profile_image_url, email')
+          .select('id, name, full_name, username, profile_photo, profile_image_url, email')
           .eq('id', otherUserId)
           .single();
           
@@ -180,8 +181,10 @@ const ChatPage: React.FC = () => {
             name: getDisplayName({
               name: profile.name,
               full_name: profile.full_name,
+              username: profile.username,
               email: profile.email // Note: profile might not have email, but getDisplayName handles it
             }, otherUserRole),
+            username: profile.username,
             profile_photo: profile.profile_image_url || profile.profile_photo
           } : { 
             id: otherUserId, 
@@ -334,6 +337,15 @@ const ChatPage: React.FC = () => {
     }
   };
 
+  const formatFullDate = (dateString: string) => {
+    const date = new Date(dateString);
+    const day = date.getDate().toString().padStart(2, '0');
+    const month = date.toLocaleString('en-GB', { month: 'short' });
+    const year = date.getFullYear();
+    const time = date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
+    return `${day} ${month} ${year}, ${time}`;
+  };
+
   const formatTime = (dateString: string) => {
     const date = new Date(dateString);
     return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
@@ -480,7 +492,7 @@ const ChatPage: React.FC = () => {
                       <div className={`flex flex-col ${isMe ? 'items-end' : 'items-start'} max-w-[70%]`}>
                         {showAvatar && (
                           <span className="text-[10px] text-slate-500 mb-1 px-1">
-                            {isMe ? user?.name : activeConversation.other_user?.name}
+                            {isMe ? (user?.username || user?.name) : (activeConversation.other_user?.username || activeConversation.other_user?.name)}
                           </span>
                         )}
                         <div 
@@ -537,7 +549,7 @@ const ChatPage: React.FC = () => {
                         </div>
                         <div className="flex items-center gap-1 mt-1 px-1 text-[10px] text-slate-500">
                           <Clock className="h-3 w-3" />
-                          {formatTime(msg.created_at)}
+                          {formatFullDate(msg.created_at)}
                         </div>
                       </div>
                     </div>
