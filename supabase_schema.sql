@@ -15,7 +15,7 @@ CREATE TABLE profiles (
   id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
   full_name TEXT,
   email TEXT,
-  role TEXT CHECK (role IN ('client', 'editor')),
+  role TEXT CHECK (role IN ('client', 'editor')) DEFAULT 'client',
   avatar_url TEXT,
   bio TEXT,
   skills TEXT[],
@@ -25,7 +25,7 @@ CREATE TABLE profiles (
 -- Create demo_videos table
 CREATE TABLE demo_videos (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  editor_id UUID REFERENCES profiles(id) ON DELETE CASCADE,
+  editor_id UUID REFERENCES profiles(id) ON DELETE CASCADE NOT NULL,
   title TEXT,
   video_url TEXT NOT NULL,
   thumbnail_url TEXT,
@@ -35,7 +35,7 @@ CREATE TABLE demo_videos (
 -- Create projects table
 CREATE TABLE projects (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  client_id UUID REFERENCES profiles(id) ON DELETE CASCADE,
+  client_id UUID REFERENCES profiles(id) ON DELETE CASCADE NOT NULL,
   editor_id UUID REFERENCES profiles(id) ON DELETE SET NULL,
   title TEXT NOT NULL,
   description TEXT,
@@ -48,16 +48,16 @@ CREATE TABLE projects (
 CREATE TABLE chats (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   project_id UUID REFERENCES projects(id) ON DELETE CASCADE,
-  client_id UUID REFERENCES profiles(id) ON DELETE CASCADE,
-  editor_id UUID REFERENCES profiles(id) ON DELETE CASCADE,
+  client_id UUID REFERENCES profiles(id) ON DELETE CASCADE NOT NULL,
+  editor_id UUID REFERENCES profiles(id) ON DELETE CASCADE NOT NULL,
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
 -- Create messages table
 CREATE TABLE messages (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  chat_id UUID REFERENCES chats(id) ON DELETE CASCADE,
-  sender_id UUID REFERENCES profiles(id) ON DELETE CASCADE,
+  chat_id UUID REFERENCES chats(id) ON DELETE CASCADE NOT NULL,
+  sender_id UUID REFERENCES profiles(id) ON DELETE CASCADE NOT NULL,
   message TEXT,
   file_url TEXT,
   created_at TIMESTAMPTZ DEFAULT NOW()
@@ -66,9 +66,9 @@ CREATE TABLE messages (
 -- Create reviews table
 CREATE TABLE reviews (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  project_id UUID REFERENCES projects(id) ON DELETE CASCADE,
-  client_id UUID REFERENCES profiles(id) ON DELETE CASCADE,
-  editor_id UUID REFERENCES profiles(id) ON DELETE CASCADE,
+  project_id UUID REFERENCES projects(id) ON DELETE CASCADE NOT NULL,
+  client_id UUID REFERENCES profiles(id) ON DELETE CASCADE NOT NULL,
+  editor_id UUID REFERENCES profiles(id) ON DELETE CASCADE NOT NULL,
   rating INTEGER CHECK (rating >= 1 AND rating <= 5),
   review TEXT,
   created_at TIMESTAMPTZ DEFAULT NOW()
@@ -77,7 +77,7 @@ CREATE TABLE reviews (
 -- Create notifications table
 CREATE TABLE notifications (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  user_id UUID REFERENCES profiles(id) ON DELETE CASCADE,
+  user_id UUID REFERENCES profiles(id) ON DELETE CASCADE NOT NULL,
   title TEXT,
   message TEXT,
   is_read BOOLEAN DEFAULT FALSE,
@@ -95,7 +95,6 @@ CREATE INDEX idx_chats_participants ON chats(client_id, editor_id);
 CREATE INDEX idx_messages_chat_id ON messages(chat_id);
 CREATE INDEX idx_reviews_project_id ON reviews(project_id);
 CREATE INDEX idx_notifications_user_id ON notifications(user_id);
-CREATE INDEX idx_notifications_is_read ON notifications(is_read);
 
 -- Enable Row Level Security
 ALTER TABLE profiles ENABLE ROW LEVEL SECURITY;
@@ -108,9 +107,9 @@ ALTER TABLE notifications ENABLE ROW LEVEL SECURITY;
 
 -- RLS Policies
 
--- Profiles
-CREATE POLICY "Users can view own profile" ON profiles
-  FOR SELECT USING (auth.uid() = id);
+-- Profiles: Allow public read, owner update
+CREATE POLICY "Public profiles are viewable by everyone" ON profiles
+  FOR SELECT USING (true);
 
 CREATE POLICY "Users can update own profile" ON profiles
   FOR UPDATE USING (auth.uid() = id);
@@ -118,32 +117,28 @@ CREATE POLICY "Users can update own profile" ON profiles
 CREATE POLICY "Users can insert own profile" ON profiles
   FOR INSERT WITH CHECK (auth.uid() = id);
 
--- Demo Videos
-CREATE POLICY "Public view demo videos" ON demo_videos
+-- Projects: Public read (for editors to find work), Client create/update
+CREATE POLICY "Projects are viewable by everyone" ON projects
   FOR SELECT USING (true);
 
-CREATE POLICY "Editors manage own videos" ON demo_videos
-  FOR ALL USING (auth.uid() = editor_id);
+CREATE POLICY "Clients can insert own projects" ON projects
+  FOR INSERT WITH CHECK (auth.uid() = client_id);
 
--- Projects
-CREATE POLICY "Clients view own projects" ON projects
-  FOR SELECT USING (auth.uid() = client_id);
+CREATE POLICY "Clients can update own projects" ON projects
+  FOR UPDATE USING (auth.uid() = client_id);
 
-CREATE POLICY "Editors view assigned projects" ON projects
-  FOR SELECT USING (auth.uid() = editor_id);
+CREATE POLICY "Editors can update assigned projects" ON projects
+  FOR UPDATE USING (auth.uid() = editor_id);
 
-CREATE POLICY "Clients manage own projects" ON projects
-  FOR ALL USING (auth.uid() = client_id);
-
--- Chats
-CREATE POLICY "Participants view chats" ON chats
+-- Chats: Participants only
+CREATE POLICY "Users can view their chats" ON chats
   FOR SELECT USING (auth.uid() = client_id OR auth.uid() = editor_id);
 
-CREATE POLICY "Participants insert chats" ON chats
+CREATE POLICY "Users can create chats" ON chats
   FOR INSERT WITH CHECK (auth.uid() = client_id OR auth.uid() = editor_id);
 
--- Messages
-CREATE POLICY "Chat participants view messages" ON messages
+-- Messages: Chat participants only
+CREATE POLICY "Users can view messages in their chats" ON messages
   FOR SELECT USING (
     EXISTS (
       SELECT 1 FROM chats
@@ -152,7 +147,7 @@ CREATE POLICY "Chat participants view messages" ON messages
     )
   );
 
-CREATE POLICY "Chat participants insert messages" ON messages
+CREATE POLICY "Users can insert messages in their chats" ON messages
   FOR INSERT WITH CHECK (
     auth.uid() = sender_id AND
     EXISTS (
@@ -162,16 +157,45 @@ CREATE POLICY "Chat participants insert messages" ON messages
     )
   );
 
--- Reviews
-CREATE POLICY "Project users view reviews" ON reviews
-  FOR SELECT USING (auth.uid() = client_id OR auth.uid() = editor_id);
+-- Demo Videos: Public read, Editor manage
+CREATE POLICY "Videos are viewable by everyone" ON demo_videos
+  FOR SELECT USING (true);
 
-CREATE POLICY "Clients create reviews" ON reviews
+CREATE POLICY "Editors can manage own videos" ON demo_videos
+  FOR ALL USING (auth.uid() = editor_id);
+
+-- Reviews: Public read, Client create
+CREATE POLICY "Reviews are viewable by everyone" ON reviews
+  FOR SELECT USING (true);
+
+CREATE POLICY "Clients can create reviews" ON reviews
   FOR INSERT WITH CHECK (auth.uid() = client_id);
 
--- Notifications
-CREATE POLICY "Users view own notifications" ON notifications
+-- Notifications: Owner only
+CREATE POLICY "Users can view own notifications" ON notifications
   FOR SELECT USING (auth.uid() = user_id);
 
-CREATE POLICY "Users update own notifications" ON notifications
+CREATE POLICY "Users can update own notifications" ON notifications
   FOR UPDATE USING (auth.uid() = user_id);
+
+-- Trigger for new users to auto-create profile
+CREATE OR REPLACE FUNCTION public.handle_new_user()
+RETURNS trigger AS $$
+BEGIN
+  INSERT INTO public.profiles (id, email, full_name, role)
+  VALUES (
+    new.id,
+    new.email,
+    COALESCE(new.raw_user_meta_data->>'full_name', new.email),
+    COALESCE(new.raw_user_meta_data->>'role', 'client')
+  )
+  ON CONFLICT (id) DO NOTHING;
+  RETURN new;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- Drop trigger if exists to avoid error on rebuild
+DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
+CREATE TRIGGER on_auth_user_created
+  AFTER INSERT ON auth.users
+  FOR EACH ROW EXECUTE PROCEDURE public.handle_new_user();
