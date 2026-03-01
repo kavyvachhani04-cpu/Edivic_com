@@ -1,103 +1,177 @@
--- Ensure all required columns exist in profiles table
-DO $$
-BEGIN
-    -- Basic fields
-    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'profiles' AND column_name = 'skills') THEN
-        ALTER TABLE profiles ADD COLUMN skills TEXT;
-    END IF;
+-- Drop existing tables to rebuild from scratch
+DROP TABLE IF EXISTS notifications CASCADE;
+DROP TABLE IF EXISTS reviews CASCADE;
+DROP TABLE IF EXISTS messages CASCADE;
+DROP TABLE IF EXISTS chats CASCADE;
+DROP TABLE IF EXISTS projects CASCADE;
+DROP TABLE IF EXISTS demo_videos CASCADE;
+DROP TABLE IF EXISTS profiles CASCADE;
 
-    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'profiles' AND column_name = 'bio') THEN
-        ALTER TABLE profiles ADD COLUMN bio TEXT;
-    END IF;
+-- Enable UUID extension
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
-    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'profiles' AND column_name = 'experience') THEN
-        ALTER TABLE profiles ADD COLUMN experience TEXT;
-    END IF;
+-- Create profiles table
+CREATE TABLE profiles (
+  id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
+  full_name TEXT,
+  email TEXT,
+  role TEXT CHECK (role IN ('client', 'editor')),
+  avatar_url TEXT,
+  bio TEXT,
+  skills TEXT[],
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
 
-    -- Ensure previously added columns are definitely there
-    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'profiles' AND column_name = 'rating') THEN
-        ALTER TABLE profiles ADD COLUMN rating FLOAT DEFAULT 0;
-    END IF;
+-- Create demo_videos table
+CREATE TABLE demo_videos (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  editor_id UUID REFERENCES profiles(id) ON DELETE CASCADE,
+  title TEXT,
+  video_url TEXT NOT NULL,
+  thumbnail_url TEXT,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
 
-    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'profiles' AND column_name = 'hourly_rate') THEN
-        ALTER TABLE profiles ADD COLUMN hourly_rate TEXT;
-    END IF;
+-- Create projects table
+CREATE TABLE projects (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  client_id UUID REFERENCES profiles(id) ON DELETE CASCADE,
+  editor_id UUID REFERENCES profiles(id) ON DELETE SET NULL,
+  title TEXT NOT NULL,
+  description TEXT,
+  budget NUMERIC,
+  status TEXT CHECK (status IN ('open', 'in_progress', 'completed', 'cancelled')) DEFAULT 'open',
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
 
-    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'profiles' AND column_name = 'profile_photo') THEN
-        ALTER TABLE profiles ADD COLUMN profile_photo TEXT;
-    END IF;
+-- Create chats table
+CREATE TABLE chats (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  project_id UUID REFERENCES projects(id) ON DELETE CASCADE,
+  client_id UUID REFERENCES profiles(id) ON DELETE CASCADE,
+  editor_id UUID REFERENCES profiles(id) ON DELETE CASCADE,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
 
-    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'profiles' AND column_name = 'is_active') THEN
-        ALTER TABLE profiles ADD COLUMN is_active BOOLEAN DEFAULT true;
-    END IF;
+-- Create messages table
+CREATE TABLE messages (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  chat_id UUID REFERENCES chats(id) ON DELETE CASCADE,
+  sender_id UUID REFERENCES profiles(id) ON DELETE CASCADE,
+  message TEXT,
+  file_url TEXT,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
 
-    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'profiles' AND column_name = 'is_featured') THEN
-        ALTER TABLE profiles ADD COLUMN is_featured BOOLEAN DEFAULT false;
-    END IF;
+-- Create reviews table
+CREATE TABLE reviews (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  project_id UUID REFERENCES projects(id) ON DELETE CASCADE,
+  client_id UUID REFERENCES profiles(id) ON DELETE CASCADE,
+  editor_id UUID REFERENCES profiles(id) ON DELETE CASCADE,
+  rating INTEGER CHECK (rating >= 1 AND rating <= 5),
+  review TEXT,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
 
-    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'profiles' AND column_name = 'role') THEN
-        ALTER TABLE profiles ADD COLUMN role TEXT CHECK (role IN ('client', 'editor', 'admin'));
-    END IF;
+-- Create notifications table
+CREATE TABLE notifications (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  user_id UUID REFERENCES profiles(id) ON DELETE CASCADE,
+  title TEXT,
+  message TEXT,
+  is_read BOOLEAN DEFAULT FALSE,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
 
-    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'profiles' AND column_name = 'full_name') THEN
-        ALTER TABLE profiles ADD COLUMN full_name TEXT;
-    END IF;
+-- Indexes for performance
+CREATE INDEX idx_profiles_role ON profiles(role);
+CREATE INDEX idx_demo_videos_editor_id ON demo_videos(editor_id);
+CREATE INDEX idx_projects_client_id ON projects(client_id);
+CREATE INDEX idx_projects_editor_id ON projects(editor_id);
+CREATE INDEX idx_projects_status ON projects(status);
+CREATE INDEX idx_chats_project_id ON chats(project_id);
+CREATE INDEX idx_chats_participants ON chats(client_id, editor_id);
+CREATE INDEX idx_messages_chat_id ON messages(chat_id);
+CREATE INDEX idx_reviews_project_id ON reviews(project_id);
+CREATE INDEX idx_notifications_user_id ON notifications(user_id);
+CREATE INDEX idx_notifications_is_read ON notifications(is_read);
 
-    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'profiles' AND column_name = 'price_per_hour') THEN
-        ALTER TABLE profiles ADD COLUMN price_per_hour NUMERIC DEFAULT 0;
-    END IF;
+-- Enable Row Level Security
+ALTER TABLE profiles ENABLE ROW LEVEL SECURITY;
+ALTER TABLE demo_videos ENABLE ROW LEVEL SECURITY;
+ALTER TABLE projects ENABLE ROW LEVEL SECURITY;
+ALTER TABLE chats ENABLE ROW LEVEL SECURITY;
+ALTER TABLE messages ENABLE ROW LEVEL SECURITY;
+ALTER TABLE reviews ENABLE ROW LEVEL SECURITY;
+ALTER TABLE notifications ENABLE ROW LEVEL SECURITY;
 
-    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'profiles' AND column_name = 'profile_image_url') THEN
-        ALTER TABLE profiles ADD COLUMN profile_image_url TEXT DEFAULT '';
-    END IF;
+-- RLS Policies
 
-    -- Projects table updates
-    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'projects' AND column_name = 'category') THEN
-        ALTER TABLE projects ADD COLUMN category TEXT;
-    END IF;
+-- Profiles
+CREATE POLICY "Users can view own profile" ON profiles
+  FOR SELECT USING (auth.uid() = id);
 
-    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'projects' AND column_name = 'skills') THEN
-        ALTER TABLE projects ADD COLUMN skills TEXT;
-    END IF;
+CREATE POLICY "Users can update own profile" ON profiles
+  FOR UPDATE USING (auth.uid() = id);
 
-    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'projects' AND column_name = 'experience_level') THEN
-        ALTER TABLE projects ADD COLUMN experience_level TEXT;
-    END IF;
+CREATE POLICY "Users can insert own profile" ON profiles
+  FOR INSERT WITH CHECK (auth.uid() = id);
 
-    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'projects' AND column_name = 'rating') THEN
-        ALTER TABLE projects ADD COLUMN rating INTEGER;
-    END IF;
+-- Demo Videos
+CREATE POLICY "Public view demo videos" ON demo_videos
+  FOR SELECT USING (true);
 
-    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'projects' AND column_name = 'feedback') THEN
-        ALTER TABLE projects ADD COLUMN feedback TEXT;
-    END IF;
-END $$;
+CREATE POLICY "Editors manage own videos" ON demo_videos
+  FOR ALL USING (auth.uid() = editor_id);
 
--- Enable RLS on profiles
-ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
+-- Projects
+CREATE POLICY "Clients view own projects" ON projects
+  FOR SELECT USING (auth.uid() = client_id);
 
--- Enable Realtime for profiles table
-ALTER PUBLICATION supabase_realtime ADD TABLE public.profiles;
+CREATE POLICY "Editors view assigned projects" ON projects
+  FOR SELECT USING (auth.uid() = editor_id);
 
--- Profile Policies
-DROP POLICY IF EXISTS "view_editor_profiles" ON public.profiles;
-CREATE POLICY "view_editor_profiles"
-ON public.profiles
-FOR SELECT
-TO authenticated
-USING (role = 'editor' OR auth.uid() = id);
+CREATE POLICY "Clients manage own projects" ON projects
+  FOR ALL USING (auth.uid() = client_id);
 
-DROP POLICY IF EXISTS "update_own_profile" ON public.profiles;
-CREATE POLICY "update_own_profile"
-ON public.profiles
-FOR UPDATE
-TO authenticated
-USING (auth.uid() = id)
-WITH CHECK (auth.uid() = id);
+-- Chats
+CREATE POLICY "Participants view chats" ON chats
+  FOR SELECT USING (auth.uid() = client_id OR auth.uid() = editor_id);
 
-DROP POLICY IF EXISTS "insert_own_profile" ON public.profiles;
-CREATE POLICY "insert_own_profile"
-ON public.profiles
-FOR INSERT
-TO authenticated
-WITH CHECK (auth.uid() = id);
+CREATE POLICY "Participants insert chats" ON chats
+  FOR INSERT WITH CHECK (auth.uid() = client_id OR auth.uid() = editor_id);
+
+-- Messages
+CREATE POLICY "Chat participants view messages" ON messages
+  FOR SELECT USING (
+    EXISTS (
+      SELECT 1 FROM chats
+      WHERE chats.id = messages.chat_id
+      AND (chats.client_id = auth.uid() OR chats.editor_id = auth.uid())
+    )
+  );
+
+CREATE POLICY "Chat participants insert messages" ON messages
+  FOR INSERT WITH CHECK (
+    auth.uid() = sender_id AND
+    EXISTS (
+      SELECT 1 FROM chats
+      WHERE chats.id = chat_id
+      AND (chats.client_id = auth.uid() OR chats.editor_id = auth.uid())
+    )
+  );
+
+-- Reviews
+CREATE POLICY "Project users view reviews" ON reviews
+  FOR SELECT USING (auth.uid() = client_id OR auth.uid() = editor_id);
+
+CREATE POLICY "Clients create reviews" ON reviews
+  FOR INSERT WITH CHECK (auth.uid() = client_id);
+
+-- Notifications
+CREATE POLICY "Users view own notifications" ON notifications
+  FOR SELECT USING (auth.uid() = user_id);
+
+CREATE POLICY "Users update own notifications" ON notifications
+  FOR UPDATE USING (auth.uid() = user_id);

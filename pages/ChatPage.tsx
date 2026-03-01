@@ -40,7 +40,7 @@ interface Message {
 const ChatPage: React.FC = () => {
   const { user } = useAuth();
   const { markAsRead } = useChat();
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const initialConversationId = searchParams.get('chat_id') || searchParams.get('conversation_id');
   
   const [conversations, setConversations] = useState<Conversation[]>([]);
@@ -60,6 +60,55 @@ const ChatPage: React.FC = () => {
   useEffect(() => {
     if (user) {
       fetchConversations();
+      
+      // Global subscription to messages to update conversation list (last message, sorting)
+      const globalMsgSubscription = supabase
+        .channel('global-messages-list')
+        .on('postgres_changes', {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'messages'
+        }, async (payload) => {
+          const newMessage = payload.new;
+          
+          // If message is for a conversation we have, update it
+          setConversations(prev => {
+            const exists = prev.some(c => c.id === newMessage.chat_id);
+            if (exists) {
+              const updated = prev.map(c => {
+                if (c.id === newMessage.chat_id) {
+                  return {
+                    ...c,
+                    updated_at: newMessage.created_at,
+                    last_message: {
+                      text: newMessage.message,
+                      created_at: newMessage.created_at
+                    }
+                  };
+                }
+                return c;
+              });
+              return [...updated].sort((a, b) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime());
+            } else {
+              // If it's a new conversation for the user, refresh the whole list
+              // We check if the user is part of this chat first
+              supabase.from('chats')
+                .select('id')
+                .eq('id', newMessage.chat_id)
+                .or(`client_id.eq.${user.id},editor_id.eq.${user.id}`)
+                .single()
+                .then(({ data }) => {
+                  if (data) fetchConversations();
+                });
+              return prev;
+            }
+          });
+        })
+        .subscribe();
+
+      return () => {
+        supabase.removeChannel(globalMsgSubscription);
+      };
     }
   }, [user]);
 
@@ -259,19 +308,23 @@ const ChatPage: React.FC = () => {
 
       if (error) throw error;
       
-      // Update local conversation last message
-      setConversations(prev => prev.map(c => {
-        if (c.id === activeConversationId) {
-          return {
-            ...c,
-            last_message: {
-              text: messageText || (fileData ? `Sent a file: ${fileData.name}` : ''),
-              created_at: new Date().toISOString()
-            }
-          };
-        }
-        return c;
-      }));
+      // Update local conversation last message and sort
+      setConversations(prev => {
+        const updated = prev.map(c => {
+          if (c.id === activeConversationId) {
+            return {
+              ...c,
+              updated_at: new Date().toISOString(),
+              last_message: {
+                text: messageText || (fileData ? `Sent a file: ${fileData.name}` : ''),
+                created_at: new Date().toISOString()
+              }
+            };
+          }
+          return c;
+        });
+        return [...updated].sort((a, b) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime());
+      });
     } catch (error) {
       console.error('Error sending message:', error);
       if (!fileData) setNewMessage(messageText); // Restore message on failure if it wasn't a file-only message
@@ -410,7 +463,10 @@ const ChatPage: React.FC = () => {
             conversations.map(conv => (
               <div 
                 key={conv.id}
-                onClick={() => setActiveConversationId(conv.id)}
+                onClick={() => {
+                  setActiveConversationId(conv.id);
+                  setSearchParams({ chat_id: conv.id });
+                }}
                 className={`p-4 border-b border-white/5 cursor-pointer transition-colors flex items-center gap-3 ${activeConversationId === conv.id ? 'bg-gold/10 border-l-2 border-l-gold' : 'hover:bg-white/5'}`}
               >
                 <div className="relative">
